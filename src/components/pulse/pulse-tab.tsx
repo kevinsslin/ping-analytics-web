@@ -5,8 +5,8 @@ import { useSwaps } from '@/hooks/useSwaps'
 import { useTransfers } from '@/hooks/useTransfers'
 import { LoadingCard } from '@/components/shared/loading'
 import { shortenAddress, getTimeAgo, formatTokenAmount, getBlockExplorerTxUrl, getBlockExplorerAddressUrl } from '@/lib/utils'
-import { TOKEN_SYMBOL } from '@/types'
-import { ExternalLink, Copy, ArrowUpRight, ArrowDownRight, Activity } from 'lucide-react'
+import { TOKEN_SYMBOL, SPECIAL_ADDRESSES } from '@/types'
+import { ExternalLink, Copy, ArrowUpRight, ArrowDownRight, Activity, BadgeCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useState, useEffect, useRef } from 'react'
 
@@ -154,26 +154,45 @@ export function PulseTab() {
                     </div>
 
                     {/* Addresses - Single Line with Arrow */}
-                    <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
-                      <span className="font-medium text-muted-foreground">From:</span>
-                      <a
-                        href={getBlockExplorerAddressUrl(transfer.from.address)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-mono hover:text-primary transition-colors"
-                      >
-                        {shortenAddress(transfer.from.address)}
-                      </a>
-                      <ArrowDownRight className="h-3 w-3 flex-shrink-0" />
-                      <span className="font-medium text-muted-foreground">To:</span>
-                      <a
-                        href={getBlockExplorerAddressUrl(transfer.to.address)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-mono hover:text-primary transition-colors"
-                      >
-                        {shortenAddress(transfer.to.address)}
-                      </a>
+                    <div className="space-y-2 mb-2">
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="font-medium text-muted-foreground">From:</span>
+                        <a
+                          href={getBlockExplorerAddressUrl(transfer.from.address)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-mono hover:text-primary transition-colors text-muted-foreground"
+                        >
+                          {shortenAddress(transfer.from.address)}
+                        </a>
+                        {SPECIAL_ADDRESSES[transfer.from.address.toLowerCase()] && (
+                          <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${SPECIAL_ADDRESSES[transfer.from.address.toLowerCase()].bgColor}`}>
+                            <BadgeCheck className="h-3 w-3" />
+                            <span className={`text-xs font-semibold ${SPECIAL_ADDRESSES[transfer.from.address.toLowerCase()].color}`}>
+                              {SPECIAL_ADDRESSES[transfer.from.address.toLowerCase()].label}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="font-medium text-muted-foreground">To:</span>
+                        <a
+                          href={getBlockExplorerAddressUrl(transfer.to.address)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-mono hover:text-primary transition-colors text-muted-foreground ml-3"
+                        >
+                          {shortenAddress(transfer.to.address)}
+                        </a>
+                        {SPECIAL_ADDRESSES[transfer.to.address.toLowerCase()] && (
+                          <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${SPECIAL_ADDRESSES[transfer.to.address.toLowerCase()].bgColor}`}>
+                            <BadgeCheck className="h-3 w-3" />
+                            <span className={`text-xs font-semibold ${SPECIAL_ADDRESSES[transfer.to.address.toLowerCase()].color}`}>
+                              {SPECIAL_ADDRESSES[transfer.to.address.toLowerCase()].label}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {/* Transaction Row */}
@@ -290,26 +309,45 @@ export function PulseTab() {
                     </div>
 
                     {/* Addresses - Sender → Recipient */}
-                    <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
-                      <span className="font-medium text-muted-foreground">From:</span>
-                      <a
-                        href={getBlockExplorerAddressUrl(swap.sender)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-mono hover:text-primary transition-colors"
-                      >
-                        {shortenAddress(swap.sender)}
-                      </a>
-                      <ArrowDownRight className="h-3 w-3 flex-shrink-0" />
-                      <span className="font-medium text-muted-foreground">To:</span>
-                      <a
-                        href={getBlockExplorerAddressUrl(swap.recipient)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-mono hover:text-primary transition-colors"
-                      >
-                        {shortenAddress(swap.recipient)}
-                      </a>
+                    <div className="space-y-2 mb-2">
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="font-medium text-muted-foreground">From:</span>
+                        <a
+                          href={getBlockExplorerAddressUrl(swap.sender)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-mono hover:text-primary transition-colors text-muted-foreground"
+                        >
+                          {shortenAddress(swap.sender)}
+                        </a>
+                        {SPECIAL_ADDRESSES[swap.sender.toLowerCase()] && (
+                          <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${SPECIAL_ADDRESSES[swap.sender.toLowerCase()].bgColor}`}>
+                            <BadgeCheck className="h-3 w-3" />
+                            <span className={`text-xs font-semibold ${SPECIAL_ADDRESSES[swap.sender.toLowerCase()].color}`}>
+                              {SPECIAL_ADDRESSES[swap.sender.toLowerCase()].label}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="font-medium text-muted-foreground">To:</span>
+                        <a
+                          href={getBlockExplorerAddressUrl(swap.recipient)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-mono hover:text-primary transition-colors text-muted-foreground ml-3"
+                        >
+                          {shortenAddress(swap.recipient)}
+                        </a>
+                        {SPECIAL_ADDRESSES[swap.recipient.toLowerCase()] && (
+                          <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${SPECIAL_ADDRESSES[swap.recipient.toLowerCase()].bgColor}`}>
+                            <BadgeCheck className="h-3 w-3" />
+                            <span className={`text-xs font-semibold ${SPECIAL_ADDRESSES[swap.recipient.toLowerCase()].color}`}>
+                              {SPECIAL_ADDRESSES[swap.recipient.toLowerCase()].label}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {/* Transaction Row */}
