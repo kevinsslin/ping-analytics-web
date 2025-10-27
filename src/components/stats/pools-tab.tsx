@@ -5,7 +5,7 @@ import { usePool } from '@/hooks/usePool'
 import { LoadingCard } from '@/components/shared/loading'
 import { shortenAddress, formatTokenAmount, formatNumber, getTimeAgo, getBlockExplorerAddressUrl } from '@/lib/utils'
 import { TOKEN_SYMBOL, USDC_SYMBOL, PING_DECIMALS, USDC_DECIMALS, POOL_ADDRESS } from '@/types'
-import { ExternalLink, Copy, Droplets, Activity, Hash, Clock, Info, TrendingUp, DollarSign, Coins } from 'lucide-react'
+import { ExternalLink, Copy, Activity, Hash, Clock, Info, TrendingUp, DollarSign, Coins, Droplets } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
 
@@ -46,14 +46,6 @@ export function PoolsTab() {
   const totalVolumeUSD = volumeToken0
 
   const stats = [
-    {
-      icon: Droplets,
-      label: 'Pool Liquidity',
-      value: formatNumber(pool.liquidity),
-      subtext: `${TOKEN_SYMBOL}-${USDC_SYMBOL} pool`,
-      color: 'text-cyan-500',
-      bgColor: 'bg-cyan-500/10'
-    },
     {
       icon: DollarSign,
       label: 'Total Volume',
@@ -134,7 +126,7 @@ export function PoolsTab() {
       </Card>
 
       {/* Pool Statistics & TVL */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, index) => {
           const Icon = stat.icon
           return (
