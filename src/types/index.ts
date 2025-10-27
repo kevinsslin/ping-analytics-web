@@ -126,6 +126,11 @@ export const SPECIAL_ADDRESSES: Record<string, { label: string; color: string; b
     label: 'Uniswap V4: Pool Manager',
     color: 'text-blue-600 dark:text-blue-400',
     bgColor: 'bg-blue-500/10 border-blue-500/20'
+  },
+  '0x498581ff718922c3f8e6a244956af099b2652b2b': {
+    label: 'Uniswap V4: Pool Manager',
+    color: 'text-blue-600 dark:text-blue-400',
+    bgColor: 'bg-blue-500/10 border-blue-500/20'
   }
 }
 

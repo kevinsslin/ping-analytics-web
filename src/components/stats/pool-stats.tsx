@@ -30,13 +30,15 @@ export function PoolStats() {
   }
 
   const volumeToken0 = parseFloat(pool.volumeToken0)
+  const tvlToken0 = parseFloat(pool.totalValueLockedToken0)
+  const tvlToken1 = parseFloat(pool.totalValueLockedToken1)
 
   const stats = [
     {
       icon: Droplets,
-      label: 'Liquidity',
-      value: formatNumber(pool.liquidity),
-      subtext: 'Liquidity units',
+      label: 'TVL',
+      value: `$${formatTokenAmount(tvlToken0, 0)}`,
+      subtext: `${formatTokenAmount(tvlToken1, 0)} ${TOKEN_SYMBOL}`,
       color: 'text-cyan-500',
       bgColor: 'bg-cyan-500/10'
     },
