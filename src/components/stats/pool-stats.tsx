@@ -30,18 +30,9 @@ export function PoolStats() {
   }
 
   const volumeToken0 = parseFloat(pool.volumeToken0)
-  const tvlToken0 = parseFloat(pool.totalValueLockedToken0)
-  const tvlToken1 = parseFloat(pool.totalValueLockedToken1)
+  const volumeToken1 = parseFloat(pool.volumeToken1)
 
   const stats = [
-    {
-      icon: Droplets,
-      label: 'TVL',
-      value: `$${formatTokenAmount(tvlToken0, 0)}`,
-      subtext: `${formatTokenAmount(tvlToken1, 0)} ${TOKEN_SYMBOL}`,
-      color: 'text-cyan-500',
-      bgColor: 'bg-cyan-500/10'
-    },
     {
       icon: Percent,
       label: 'Fee Tier',
@@ -57,6 +48,14 @@ export function PoolStats() {
       subtext: 'All-time',
       color: 'text-emerald-500',
       bgColor: 'bg-emerald-500/10'
+    },
+    {
+      icon: Droplets,
+      label: `Volume ${TOKEN_SYMBOL}`,
+      value: formatTokenAmount(volumeToken1, 0),
+      subtext: 'All-time',
+      color: 'text-purple-500',
+      bgColor: 'bg-purple-500/10'
     },
     {
       icon: Activity,
