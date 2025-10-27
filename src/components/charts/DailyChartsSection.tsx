@@ -41,6 +41,16 @@ export function DailyChartsSection() {
     newAccounts: parseInt(activity.newAccounts)
   })).reverse() // Reverse to show oldest to newest
 
+  // Calculate cumulative holders
+  let cumulativeHolders = 0
+  const tokenChartDataWithCumulative = tokenChartData.map(data => {
+    cumulativeHolders += data.newAccounts
+    return {
+      ...data,
+      cumulativeHolders
+    }
+  })
+
   const totalDays = tokenActivities.length
   const displayedDays = filteredTokenData.length
 
@@ -149,18 +159,24 @@ export function DailyChartsSection() {
         </CardContent>
       </Card>
 
-      {/* New Users Trends */}
+      {/* New Users Trends with Cumulative */}
       <Card className="overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-blue-500/10 via-blue-500/5 to-transparent border-b">
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            New Users Activity
+            User Growth Analysis
           </CardTitle>
-          <CardDescription>Daily new user signups</CardDescription>
+          <CardDescription>Daily new accounts and cumulative holder count</CardDescription>
         </CardHeader>
         <CardContent className="p-6">
           <ResponsiveContainer width="100%" height={350}>
-            <LineChart data={tokenChartData}>
+            <LineChart data={tokenChartDataWithCumulative}>
+              <defs>
+                <linearGradient id="colorCumulative" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis
                 dataKey="date"
@@ -168,6 +184,13 @@ export function DailyChartsSection() {
                 tick={{ fill: 'hsl(var(--muted-foreground))' }}
               />
               <YAxis
+                yAxisId="left"
+                className="text-xs"
+                tick={{ fill: 'hsl(var(--muted-foreground))' }}
+              />
+              <YAxis
+                yAxisId="right"
+                orientation="right"
                 className="text-xs"
                 tick={{ fill: 'hsl(var(--muted-foreground))' }}
               />
@@ -180,12 +203,22 @@ export function DailyChartsSection() {
               />
               <Legend />
               <Line
+                yAxisId="left"
                 type="monotone"
                 dataKey="newAccounts"
                 stroke="#10b981"
                 strokeWidth={2}
                 dot={{ r: 3 }}
-                name="New Accounts"
+                name="New Accounts (Daily)"
+              />
+              <Line
+                yAxisId="right"
+                type="monotone"
+                dataKey="cumulativeHolders"
+                stroke="#3b82f6"
+                strokeWidth={3}
+                dot={{ r: 3 }}
+                name="Cumulative Holders"
               />
             </LineChart>
           </ResponsiveContainer>
