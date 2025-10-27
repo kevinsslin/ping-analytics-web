@@ -84,6 +84,136 @@ export function PulseTab() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      {/* Transfers Stream */}
+      <Card className="overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-blue-500/10 via-blue-500/5 to-transparent border-b p-4 sm:p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500 animate-pulse" />
+              <CardTitle className="text-base sm:text-lg">Live Transfers</CardTitle>
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                {transfers.length}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-muted-foreground">
+              <div className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-green-500 animate-pulse"></div>
+              <span className="hidden sm:inline">Live</span>
+            </div>
+          </div>
+          <CardDescription className="text-xs sm:text-sm">
+            Real-time transfer activity • Updates every 2s
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          {transfersLoading ? (
+            <div className="space-y-0">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="h-16 sm:h-20 bg-muted/50 animate-pulse border-b"></div>
+              ))}
+            </div>
+          ) : (
+            <div className="max-h-[400px] sm:max-h-[600px] overflow-y-auto">
+              {transfers.slice(0, DISPLAY_LIMIT).map((transfer, index) => {
+                const value = parseFloat(transfer.value)
+
+                const isNew = newTransferIds.has(transfer.id)
+
+                return (
+                  <div
+                    key={transfer.id}
+                    className={`group relative p-3 sm:p-4 border-b hover:bg-muted/50 transition-all ${
+                      index === 0 ? 'bg-secondary/5 border-l-2 border-l-secondary' : ''
+                    } ${isNew ? 'animate-flash-highlight' : ''}`}
+                  >
+                    {/* Header Row */}
+                    <div className="flex items-center justify-between mb-2 sm:mb-3">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        {transfer.isPoolRelated ? (
+                          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                            <Activity className="h-3.5 w-3.5" />
+                            <span className="text-xs font-semibold">Pool</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                            <ArrowUpRight className="h-3.5 w-3.5" />
+                            <span className="text-xs font-semibold">Transfer</span>
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-xs text-muted-foreground font-medium">
+                        {getTimeAgo(transfer.timestamp)}
+                      </span>
+                    </div>
+
+                    {/* Amount */}
+                    <div className="flex items-baseline gap-1.5 sm:gap-2 mb-2">
+                      <span className="text-base sm:text-lg font-bold font-mono">
+                        {formatTokenAmount(value, 2)}
+                      </span>
+                      <span className="text-xs sm:text-sm text-muted-foreground">{TOKEN_SYMBOL}</span>
+                    </div>
+
+                    {/* Addresses - Single Line with Arrow */}
+                    <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
+                      <span className="font-medium text-muted-foreground">From:</span>
+                      <a
+                        href={getBlockExplorerAddressUrl(transfer.from.address)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-mono hover:text-primary transition-colors"
+                      >
+                        {shortenAddress(transfer.from.address)}
+                      </a>
+                      <ArrowDownRight className="h-3 w-3 flex-shrink-0" />
+                      <span className="font-medium text-muted-foreground">To:</span>
+                      <a
+                        href={getBlockExplorerAddressUrl(transfer.to.address)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-mono hover:text-primary transition-colors"
+                      >
+                        {shortenAddress(transfer.to.address)}
+                      </a>
+                    </div>
+
+                    {/* Transaction Row */}
+                    <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                      <span className="text-xs text-muted-foreground font-mono">
+                        {shortenAddress(transfer.transactionHash)}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 hover:bg-blue-500/10"
+                          onClick={() => copyToClipboard(transfer.transactionHash)}
+                        >
+                          <Copy className={`h-3.5 w-3.5 ${copiedHash === transfer.transactionHash ? 'text-green-500' : ''}`} />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 hover:bg-blue-500/10"
+                          asChild
+                        >
+                          <a
+                            href={getBlockExplorerTxUrl(transfer.transactionHash)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </a>
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Swaps Stream */}
       <Card className="overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5 border-b p-4 sm:p-6">
@@ -206,136 +336,6 @@ export function PulseTab() {
                         >
                           <a
                             href={getBlockExplorerTxUrl(swap.transactionHash)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <ExternalLink className="h-3.5 w-3.5" />
-                          </a>
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Transfers Stream */}
-      <Card className="overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-blue-500/10 via-blue-500/5 to-transparent border-b p-4 sm:p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500 animate-pulse" />
-              <CardTitle className="text-base sm:text-lg">Live Transfers</CardTitle>
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                {transfers.length}
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-muted-foreground">
-              <div className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-green-500 animate-pulse"></div>
-              <span className="hidden sm:inline">Live</span>
-            </div>
-          </div>
-          <CardDescription className="text-xs sm:text-sm">
-            Real-time transfer activity • Updates every 2s
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          {transfersLoading ? (
-            <div className="space-y-0">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-16 sm:h-20 bg-muted/50 animate-pulse border-b"></div>
-              ))}
-            </div>
-          ) : (
-            <div className="max-h-[400px] sm:max-h-[600px] overflow-y-auto">
-              {transfers.slice(0, DISPLAY_LIMIT).map((transfer, index) => {
-                const value = parseFloat(transfer.value)
-
-                const isNew = newTransferIds.has(transfer.id)
-
-                return (
-                  <div
-                    key={transfer.id}
-                    className={`group relative p-3 sm:p-4 border-b hover:bg-muted/50 transition-all ${
-                      index === 0 ? 'bg-secondary/5 border-l-2 border-l-secondary' : ''
-                    } ${isNew ? 'animate-flash-highlight' : ''}`}
-                  >
-                    {/* Header Row */}
-                    <div className="flex items-center justify-between mb-2 sm:mb-3">
-                      <div className="flex items-center gap-1.5 sm:gap-2">
-                        {transfer.isPoolRelated ? (
-                          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                            <Activity className="h-3.5 w-3.5" />
-                            <span className="text-xs font-semibold">Pool</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400">
-                            <ArrowUpRight className="h-3.5 w-3.5" />
-                            <span className="text-xs font-semibold">Transfer</span>
-                          </div>
-                        )}
-                      </div>
-                      <span className="text-xs text-muted-foreground font-medium">
-                        {getTimeAgo(transfer.timestamp)}
-                      </span>
-                    </div>
-
-                    {/* Amount */}
-                    <div className="flex items-baseline gap-1.5 sm:gap-2 mb-2">
-                      <span className="text-base sm:text-lg font-bold font-mono">
-                        {formatTokenAmount(value, 2)}
-                      </span>
-                      <span className="text-xs sm:text-sm text-muted-foreground">{TOKEN_SYMBOL}</span>
-                    </div>
-
-                    {/* Addresses - Single Line with Arrow */}
-                    <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
-                      <span className="font-medium text-muted-foreground">From:</span>
-                      <a
-                        href={getBlockExplorerAddressUrl(transfer.from.address)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-mono hover:text-primary transition-colors"
-                      >
-                        {shortenAddress(transfer.from.address)}
-                      </a>
-                      <ArrowDownRight className="h-3 w-3 flex-shrink-0" />
-                      <span className="font-medium text-muted-foreground">To:</span>
-                      <a
-                        href={getBlockExplorerAddressUrl(transfer.to.address)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-mono hover:text-primary transition-colors"
-                      >
-                        {shortenAddress(transfer.to.address)}
-                      </a>
-                    </div>
-
-                    {/* Transaction Row */}
-                    <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                      <span className="text-xs text-muted-foreground font-mono">
-                        {shortenAddress(transfer.transactionHash)}
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 hover:bg-blue-500/10"
-                          onClick={() => copyToClipboard(transfer.transactionHash)}
-                        >
-                          <Copy className={`h-3.5 w-3.5 ${copiedHash === transfer.transactionHash ? 'text-green-500' : ''}`} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 hover:bg-blue-500/10"
-                          asChild
-                        >
-                          <a
-                            href={getBlockExplorerTxUrl(transfer.transactionHash)}
                             target="_blank"
                             rel="noopener noreferrer"
                           >

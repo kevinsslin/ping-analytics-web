@@ -53,12 +53,12 @@ export function HoldersTab() {
             <table className="w-full text-sm table-fixed">
               <thead className="sticky top-0 bg-muted/50 backdrop-blur-sm z-10">
                 <tr className="border-b">
-                  <th className="text-left p-4 font-medium w-16">Rank</th>
-                  <th className="text-left p-4 font-medium w-[30%]">Address</th>
-                  <th className="text-right p-4 font-medium w-[18%]">Balance</th>
-                  <th className="text-left p-4 font-medium w-[20%]">% of Supply</th>
-                  <th className="text-right p-4 font-medium w-[12%]">Transfers</th>
-                  <th className="text-left p-4 font-medium w-[20%]">First Transfer</th>
+                  <th className="text-left p-2 md:p-4 font-medium w-12 md:w-16">Rank</th>
+                  <th className="text-left p-2 md:p-4 font-medium w-[35%] md:w-[30%]">Address</th>
+                  <th className="text-right p-2 md:p-4 font-medium w-[25%] md:w-[18%]">Balance</th>
+                  <th className="text-left p-2 md:p-4 font-medium w-[28%] md:w-[20%]">% of Supply</th>
+                  <th className="text-right p-2 md:p-4 font-medium w-[12%] hidden md:table-cell">Transfers</th>
+                  <th className="text-left p-2 md:p-4 font-medium w-[20%] hidden md:table-cell">First Transfer</th>
                 </tr>
               </thead>
               <tbody>
@@ -82,10 +82,10 @@ export function HoldersTab() {
                         index < 3 ? 'bg-primary/5' : ''
                       } ${specialLabel ? 'bg-blue-500/5' : ''}`}
                     >
-                      <td className="p-4 font-bold">
+                      <td className="p-2 md:p-4 font-bold text-sm md:text-base">
                         {getRankBadge(index + 1)}
                       </td>
-                      <td className="p-4">
+                      <td className="p-2 md:p-4">
                         <div className="space-y-1.5">
                           {specialLabel && (
                             <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border ${specialLabel.bgColor}`}>
@@ -96,13 +96,14 @@ export function HoldersTab() {
                             </div>
                           )}
                           <div className="flex items-center gap-2">
-                            <code className="font-mono text-xs text-muted-foreground">
-                              {account.address}
+                            <code className="font-mono text-xs text-muted-foreground truncate max-w-[100px] md:max-w-none">
+                              <span className="md:hidden">{shortenAddress(account.address)}</span>
+                              <span className="hidden md:inline">{account.address}</span>
                             </code>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-6 w-6"
+                              className="h-6 w-6 flex-shrink-0"
                               onClick={() => copyToClipboard(account.address)}
                             >
                               <Copy className={`h-3 w-3 ${copiedAddress === account.address ? 'text-green-500' : ''}`} />
@@ -110,15 +111,15 @@ export function HoldersTab() {
                           </div>
                         </div>
                       </td>
-                      <td className="p-4 text-right">
+                      <td className="p-2 md:p-4 text-right">
                         <div className="flex flex-col items-end">
-                          <span className="font-mono font-medium">{formatTokenAmount(balance, 2)}</span>
+                          <span className="font-mono font-medium text-xs md:text-sm">{formatTokenAmount(balance, 2)}</span>
                           <span className="text-xs text-muted-foreground">{TOKEN_SYMBOL}</span>
                         </div>
                       </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="flex-1 max-w-[120px]">
+                      <td className="p-2 md:p-4">
+                        <div className="flex items-center gap-2 md:gap-3">
+                          <div className="flex-1 max-w-[60px] md:max-w-[120px]">
                             <div className="h-2 bg-muted rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all"
@@ -126,17 +127,17 @@ export function HoldersTab() {
                               />
                             </div>
                           </div>
-                          <span className="text-xs font-medium text-muted-foreground min-w-[60px] text-right">
-                            {percentage.toFixed(4)}%
+                          <span className="text-xs font-medium text-muted-foreground min-w-[50px] md:min-w-[60px] text-right">
+                            {percentage.toFixed(2)}%
                           </span>
                         </div>
                       </td>
-                      <td className="p-4 text-right">
+                      <td className="p-2 md:p-4 text-right hidden md:table-cell">
                         <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-semibold">
                           {account.transferCount}
                         </span>
                       </td>
-                      <td className="p-4 text-muted-foreground text-xs">
+                      <td className="p-2 md:p-4 text-muted-foreground text-xs hidden md:table-cell">
                         {getTimeAgo(account.firstTransferAt)}
                       </td>
                     </tr>
