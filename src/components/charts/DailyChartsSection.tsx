@@ -4,8 +4,9 @@ import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useDailyTokenActivity } from '@/hooks/useDailyStats'
+import { useToken } from '@/hooks/useToken'
 import { LoadingCard } from '@/components/shared/loading'
-import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts'
 import { TOKEN_SYMBOL } from '@/types'
 import { TrendingUp, Users } from 'lucide-react'
 
@@ -14,6 +15,7 @@ type TimeRange = 7 | 30 | 'all'
 export function DailyChartsSection() {
   const [timeRange, setTimeRange] = useState<TimeRange>(30)
   const { activities: tokenActivities, loading: tokenLoading } = useDailyTokenActivity(365)
+  const { token, loading: tokenStatsLoading } = useToken()
 
   if (tokenLoading) {
     return (
@@ -41,15 +43,8 @@ export function DailyChartsSection() {
     newAccounts: parseInt(activity.newAccounts)
   })).reverse() // Reverse to show oldest to newest
 
-  // Calculate cumulative holders
-  let cumulativeHolders = 0
-  const tokenChartDataWithCumulative = tokenChartData.map(data => {
-    cumulativeHolders += data.newAccounts
-    return {
-      ...data,
-      cumulativeHolders
-    }
-  })
+  // Get current total holders from token stats
+  const currentTotalHolders = token ? parseInt(token.holderCount) : 0
 
   const totalDays = tokenActivities.length
   const displayedDays = filteredTokenData.length
@@ -159,24 +154,20 @@ export function DailyChartsSection() {
         </CardContent>
       </Card>
 
-      {/* New Users Trends with Cumulative */}
+      {/* New Users Trends */}
       <Card className="overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-blue-500/10 via-blue-500/5 to-transparent border-b">
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
             User Growth Analysis
           </CardTitle>
-          <CardDescription>Daily new accounts and cumulative holder count</CardDescription>
+          <CardDescription>
+            Daily new accounts (Current total holders: {currentTotalHolders.toLocaleString()})
+          </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
           <ResponsiveContainer width="100%" height={350}>
-            <LineChart data={tokenChartDataWithCumulative}>
-              <defs>
-                <linearGradient id="colorCumulative" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
+            <LineChart data={tokenChartData}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis
                 dataKey="date"
@@ -184,13 +175,6 @@ export function DailyChartsSection() {
                 tick={{ fill: 'hsl(var(--muted-foreground))' }}
               />
               <YAxis
-                yAxisId="left"
-                className="text-xs"
-                tick={{ fill: 'hsl(var(--muted-foreground))' }}
-              />
-              <YAxis
-                yAxisId="right"
-                orientation="right"
                 className="text-xs"
                 tick={{ fill: 'hsl(var(--muted-foreground))' }}
               />
@@ -203,22 +187,12 @@ export function DailyChartsSection() {
               />
               <Legend />
               <Line
-                yAxisId="left"
                 type="monotone"
                 dataKey="newAccounts"
                 stroke="#10b981"
                 strokeWidth={2}
                 dot={{ r: 3 }}
                 name="New Accounts (Daily)"
-              />
-              <Line
-                yAxisId="right"
-                type="monotone"
-                dataKey="cumulativeHolders"
-                stroke="#3b82f6"
-                strokeWidth={3}
-                dot={{ r: 3 }}
-                name="Cumulative Holders"
               />
             </LineChart>
           </ResponsiveContainer>
