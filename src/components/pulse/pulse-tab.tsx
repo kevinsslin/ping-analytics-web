@@ -165,7 +165,7 @@ export function PulseTab() {
                         >
                           {shortenAddress(transfer.from.address)}
                         </a>
-                        {SPECIAL_ADDRESSES[transfer.from.address.toLowerCase()] && (
+                        {SPECIAL_ADDRESSES?.[transfer.from.address.toLowerCase()] && (
                           <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${SPECIAL_ADDRESSES[transfer.from.address.toLowerCase()].bgColor}`}>
                             <BadgeCheck className="h-3 w-3" />
                             <span className={`text-xs font-semibold ${SPECIAL_ADDRESSES[transfer.from.address.toLowerCase()].color}`}>
@@ -184,7 +184,7 @@ export function PulseTab() {
                         >
                           {shortenAddress(transfer.to.address)}
                         </a>
-                        {SPECIAL_ADDRESSES[transfer.to.address.toLowerCase()] && (
+                        {SPECIAL_ADDRESSES?.[transfer.to.address.toLowerCase()] && (
                           <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${SPECIAL_ADDRESSES[transfer.to.address.toLowerCase()].bgColor}`}>
                             <BadgeCheck className="h-3 w-3" />
                             <span className={`text-xs font-semibold ${SPECIAL_ADDRESSES[transfer.to.address.toLowerCase()].color}`}>
@@ -320,7 +320,7 @@ export function PulseTab() {
                         >
                           {shortenAddress(swap.sender)}
                         </a>
-                        {SPECIAL_ADDRESSES[swap.sender.toLowerCase()] && (
+                        {SPECIAL_ADDRESSES?.[swap.sender.toLowerCase()] && (
                           <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${SPECIAL_ADDRESSES[swap.sender.toLowerCase()].bgColor}`}>
                             <BadgeCheck className="h-3 w-3" />
                             <span className={`text-xs font-semibold ${SPECIAL_ADDRESSES[swap.sender.toLowerCase()].color}`}>
@@ -339,7 +339,7 @@ export function PulseTab() {
                         >
                           {shortenAddress(swap.recipient)}
                         </a>
-                        {SPECIAL_ADDRESSES[swap.recipient.toLowerCase()] && (
+                        {SPECIAL_ADDRESSES?.[swap.recipient.toLowerCase()] && (
                           <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${SPECIAL_ADDRESSES[swap.recipient.toLowerCase()].bgColor}`}>
                             <BadgeCheck className="h-3 w-3" />
                             <span className={`text-xs font-semibold ${SPECIAL_ADDRESSES[swap.recipient.toLowerCase()].color}`}>

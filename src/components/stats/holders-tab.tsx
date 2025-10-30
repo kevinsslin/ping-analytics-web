@@ -40,6 +40,11 @@ export function HoldersTab() {
   const endIndex = Math.min(startIndex + currentPageSize, totalHolders)
 
   const handlePageSizeChange = (newSize: number) => {
+    console.log('[HoldersTab] handlePageSizeChange called:', {
+      oldSize: pageSize,
+      newSize,
+      currentPage
+    })
     setPageSize(newSize)
     goToPage(1) // Reset to first page when changing page size
   }

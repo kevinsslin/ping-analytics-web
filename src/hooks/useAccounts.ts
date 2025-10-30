@@ -34,10 +34,26 @@ export function useAccounts(
   const fetchAccounts = useCallback(async (page: number) => {
     try {
       setLoading(true)
-      // Ensure page is valid and offset is never negative
-      const validPage = Math.max(1, Math.min(page, Math.ceil(totalHolders / pageSize) || 1))
+      // Only validate page if totalHolders is available
+      let validPage = page
+      if (totalHolders > 0) {
+        const maxPage = Math.ceil(totalHolders / pageSize)
+        validPage = Math.max(1, Math.min(page, maxPage))
+      } else {
+        // If totalHolders not yet loaded, just ensure page is positive
+        validPage = Math.max(1, page)
+      }
       const offset = Math.max(0, (validPage - 1) * pageSize)
       const query = sortBy === 'balance' ? TOP_HOLDERS_QUERY : MOST_ACTIVE_ACCOUNTS_QUERY
+
+      console.log('[useAccounts] fetchAccounts called:', {
+        requestedPage: page,
+        validPage,
+        pageSize,
+        totalHolders,
+        offset,
+        limit: pageSize
+      })
 
       const data = await fetchGraphQL<AccountQueryResponse>(
         query,

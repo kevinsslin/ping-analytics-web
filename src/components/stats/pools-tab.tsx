@@ -5,13 +5,16 @@ import { usePools } from '@/hooks/usePools'
 import { LoadingCard } from '@/components/shared/loading'
 import { shortenAddress, formatTokenAmount, formatNumber, getTimeAgo, getBlockExplorerAddressUrl, fetchTokenInfo } from '@/lib/utils'
 import { TOKEN_ADDRESS, USDC_ADDRESS } from '@/types'
-import { ExternalLink, Droplets, TrendingUp, Activity, Clock } from 'lucide-react'
+import { ExternalLink, Droplets, Activity, Clock, BarChart3 } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { PoolDetailsModal } from './pool-details-modal'
 
 export function PoolsTab() {
   const { pools, loading, error } = usePools()
   const [tokenNames, setTokenNames] = useState<Record<string, string>>({})
   const [fetchingTokens, setFetchingTokens] = useState(false)
+  const [selectedPoolAddress, setSelectedPoolAddress] = useState<string | null>(null)
 
   // Fetch token names for unknown tokens
   useEffect(() => {
@@ -73,6 +76,7 @@ export function PoolsTab() {
   }
 
   return (
+    <>
     <Card className="overflow-hidden">
       <CardHeader className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b">
         <CardTitle className="flex items-center gap-2">
@@ -94,11 +98,11 @@ export function PoolsTab() {
                 <th className="text-right p-3 font-medium text-xs">Liquidity</th>
                 <th className="text-right p-3 font-medium text-xs">Volume (0)</th>
                 <th className="text-right p-3 font-medium text-xs">Volume (1)</th>
-                <th className="text-right p-3 font-medium text-xs">Vol/Liq Ratio</th>
                 <th className="text-right p-3 font-medium text-xs">Avg Swap</th>
                 <th className="text-right p-3 font-medium text-xs">Swaps</th>
                 <th className="text-left p-3 font-medium text-xs">Age</th>
                 <th className="text-left p-3 font-medium text-xs">Last Swap</th>
+                <th className="text-left p-3 font-medium text-xs">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -120,9 +124,6 @@ export function PoolsTab() {
                   const volumeToken1 = parseFloat(pool.volumeToken1)
                   const swapCount = parseFloat(pool.txCount)
 
-                  // Volume/Liquidity ratio - indicates trading activity
-                  const volLiqRatio = liquidity > 0 ? (volumeToken0 / liquidity).toFixed(2) : '0'
-
                   // Average swap size
                   const avgSwapSize = swapCount > 0 ? (volumeToken0 / swapCount) : 0
 
@@ -130,14 +131,6 @@ export function PoolsTab() {
                   const now = Math.floor(Date.now() / 1000)
                   const createdAt = parseInt(pool.createdAt)
                   const ageInDays = Math.floor((now - createdAt) / 86400)
-
-                  // Color coding for vol/liq ratio
-                  let ratioColor = 'text-muted-foreground'
-                  const ratio = parseFloat(volLiqRatio)
-                  if (ratio > 10) ratioColor = 'text-green-600 dark:text-green-400' // High activity
-                  else if (ratio > 5) ratioColor = 'text-blue-600 dark:text-blue-400' // Medium activity
-                  else if (ratio > 1) ratioColor = 'text-yellow-600 dark:text-yellow-400' // Low activity
-                  else ratioColor = 'text-red-600 dark:text-red-400' // Very low activity
 
                   return (
                     <tr key={pool.id} className="border-b hover:bg-muted/50 transition-colors">
@@ -177,11 +170,6 @@ export function PoolsTab() {
                       <td className="p-3 text-right font-mono text-xs">
                         {formatTokenAmount(volumeToken1, 0)}
                       </td>
-                      <td className="p-3 text-right">
-                        <span className={`font-mono text-xs font-semibold ${ratioColor}`}>
-                          {volLiqRatio}x
-                        </span>
-                      </td>
                       <td className="p-3 text-right font-mono text-xs text-muted-foreground">
                         ${formatTokenAmount(avgSwapSize, 2)}
                       </td>
@@ -194,6 +182,17 @@ export function PoolsTab() {
                       <td className="p-3 text-xs text-muted-foreground">
                         {getTimeAgo(pool.lastSwapAt)}
                       </td>
+                      <td className="p-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedPoolAddress(pool.address)}
+                          className="h-7 text-xs flex items-center gap-1.5"
+                        >
+                          <BarChart3 className="h-3 w-3" />
+                          <span className="hidden sm:inline">Details</span>
+                        </Button>
+                      </td>
                     </tr>
                   )
                 })
@@ -204,10 +203,6 @@ export function PoolsTab() {
         <div className="p-4 border-t bg-muted/20 text-xs text-muted-foreground">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-3.5 w-3.5" />
-              <span><strong>Vol/Liq Ratio:</strong> Trading activity indicator</span>
-            </div>
-            <div className="flex items-center gap-2">
               <Activity className="h-3.5 w-3.5" />
               <span><strong>Avg Swap:</strong> Average transaction size</span>
             </div>
@@ -216,15 +211,14 @@ export function PoolsTab() {
               <span><strong>Age:</strong> Days since pool creation</span>
             </div>
           </div>
-          <div className="mt-2 text-xs">
-            <span className="font-semibold">Color Legend:</span>{' '}
-            <span className="text-green-600 dark:text-green-400">High activity (&gt;10x)</span> •{' '}
-            <span className="text-blue-600 dark:text-blue-400">Medium (5-10x)</span> •{' '}
-            <span className="text-yellow-600 dark:text-yellow-400">Low (1-5x)</span> •{' '}
-            <span className="text-red-600 dark:text-red-400">Very low (&lt;1x)</span>
-          </div>
         </div>
       </CardContent>
     </Card>
+
+    <PoolDetailsModal
+      poolAddress={selectedPoolAddress}
+      onClose={() => setSelectedPoolAddress(null)}
+    />
+  </>
   )
 }
