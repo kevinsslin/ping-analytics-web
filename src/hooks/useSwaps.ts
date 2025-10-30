@@ -11,47 +11,20 @@ export function useSwaps(limit = 25, pollInterval: number | null = null) {
   const [swaps, setSwaps] = useState<Swap[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const latestTimestampRef = useRef<number | null>(null)
-  const isInitialFetchRef = useRef(true)
 
   const fetchSwaps = useCallback(async () => {
     try {
-      // Initial fetch: get the latest N swaps
-      if (isInitialFetchRef.current) {
-        const data = await fetchGraphQL<SwapQueryResponse>(
-          RECENT_SWAPS_QUERY,
-          { limit }
-        )
+      // Simple polling: always fetch the latest N swaps
+      const data = await fetchGraphQL<SwapQueryResponse>(
+        RECENT_SWAPS_QUERY,
+        { limit }
+      )
 
-        if (data.Swap && data.Swap.length > 0) {
-          setSwaps(data.Swap)
-          // Store the latest timestamp as integer for numeric comparison
-          latestTimestampRef.current = parseInt(data.Swap[0].timestamp)
-          setError(null)
-        }
-        setLoading(false)
-        isInitialFetchRef.current = false
-      } else {
-        // Subsequent fetches: get only new swaps after latest timestamp
-        if (!latestTimestampRef.current) return
-
-        const data = await fetchGraphQL<SwapQueryResponse>(
-          RECENT_SWAPS_AFTER_TIMESTAMP_QUERY,
-          { afterTimestamp: latestTimestampRef.current }
-        )
-
-        if (data.Swap && data.Swap.length > 0) {
-          // Prepend new swaps to existing array
-          setSwaps(prevSwaps => {
-            const combined = [...data.Swap, ...prevSwaps]
-            // Limit to MAX_SWAPS items
-            return combined.slice(0, MAX_SWAPS)
-          })
-          // Update latest timestamp to the newest swap as integer
-          latestTimestampRef.current = parseInt(data.Swap[0].timestamp)
-          setError(null)
-        }
+      if (data.Swap && data.Swap.length > 0) {
+        setSwaps(data.Swap)
+        setError(null)
       }
+      setLoading(false)
     } catch (err: any) {
       console.error('Error fetching swaps:', err)
       setError(err.message || 'Failed to fetch swaps')

@@ -37,45 +37,18 @@ export function useTransfers(
 
   const fetchTransfers = useCallback(async (page: number) => {
     try {
-      // Live updates mode: incremental fetching with timestamp
+      // Live updates mode: simple polling - always fetch latest
       if (useLiveUpdates) {
-        // Initial fetch: get the latest N transfers
-        if (isInitialFetchRef.current) {
-          setLoading(true)
-          const data = await fetchGraphQL<TransferQueryResponse>(
-            RECENT_TRANSFERS_QUERY,
-            { limit: pageSize, offset: 0 }
-          )
+        const data = await fetchGraphQL<TransferQueryResponse>(
+          RECENT_TRANSFERS_QUERY,
+          { limit: pageSize, offset: 0 }
+        )
 
-          if (data.Transfer && data.Transfer.length > 0) {
-            setTransfers(data.Transfer)
-            // Store the latest timestamp as integer for numeric comparison
-            latestTimestampRef.current = parseInt(data.Transfer[0].timestamp)
-            setError(null)
-          }
-          setLoading(false)
-          isInitialFetchRef.current = false
-        } else {
-          // Subsequent fetches: get only new transfers after latest timestamp
-          if (!latestTimestampRef.current) return
-
-          const data = await fetchGraphQL<TransferQueryResponse>(
-            RECENT_TRANSFERS_AFTER_TIMESTAMP_QUERY,
-            { afterTimestamp: latestTimestampRef.current }
-          )
-
-          if (data.Transfer && data.Transfer.length > 0) {
-            // Prepend new transfers to existing array
-            setTransfers(prevTransfers => {
-              const combined = [...data.Transfer, ...prevTransfers]
-              // Limit to MAX_TRANSFERS items
-              return combined.slice(0, MAX_TRANSFERS)
-            })
-            // Update latest timestamp to the newest transfer as integer
-            latestTimestampRef.current = parseInt(data.Transfer[0].timestamp)
-            setError(null)
-          }
+        if (data.Transfer && data.Transfer.length > 0) {
+          setTransfers(data.Transfer)
+          setError(null)
         }
+        setLoading(false)
       } else {
         // Pagination mode: traditional fetching with offset
         setLoading(true)
