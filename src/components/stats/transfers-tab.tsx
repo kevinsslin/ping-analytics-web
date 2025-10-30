@@ -12,12 +12,36 @@ import { Button } from '@/components/ui/button'
 export function TransfersTab() {
   const [filter, setFilter] = useState<boolean | null>(null)
   const [copiedHash, setCopiedHash] = useState<string | null>(null)
-  const { transfers, loading, error } = useTransfers(100, filter)
+  const [pageSize, setPageSize] = useState(100)
+
+  const {
+    transfers,
+    loading,
+    error,
+    currentPage,
+    totalPages,
+    totalTransfers,
+    pageSize: currentPageSize,
+    goToPage,
+    nextPage,
+    prevPage
+  } = useTransfers(pageSize, filter, null) // null = no auto-refresh
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
     setCopiedHash(text)
     setTimeout(() => setCopiedHash(null), 2000)
+  }
+
+  const startIndex = (currentPage - 1) * currentPageSize
+  // Smart endIndex: use totalTransfers if available, otherwise calculate from actual loaded transfers
+  const endIndex = totalTransfers > 0
+    ? Math.min(startIndex + currentPageSize, totalTransfers)
+    : startIndex + transfers.length
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize)
+    goToPage(1) // Reset to first page when changing page size
   }
 
   if (loading) {
@@ -39,6 +63,104 @@ export function TransfersTab() {
 
   return (
     <div className="space-y-6">
+      {/* Pagination and Page Size Controls */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            {/* Left side - Page size selector */}
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-muted-foreground">Show</span>
+              <div className="flex gap-1">
+                {[10, 20, 50, 100].map((size) => (
+                  <Button
+                    key={size}
+                    variant={pageSize === size ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handlePageSizeChange(size)}
+                    className="w-12"
+                  >
+                    {size}
+                  </Button>
+                ))}
+              </div>
+              <span className="text-sm text-muted-foreground">per page</span>
+            </div>
+
+            {/* Right side - Page navigation */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
+              <div className="text-sm text-muted-foreground">
+                {transfers.length > 0 ? (
+                  totalTransfers > 0 ? (
+                    <>Showing {startIndex + 1}-{endIndex} of {totalTransfers} transfers</>
+                  ) : (
+                    <>Showing {startIndex + 1}-{endIndex}</>
+                  )
+                ) : (
+                  <>No transfers on this page</>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={prevPage}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                    let pageNum
+                    if (totalPages <= 5) {
+                      pageNum = i + 1
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i
+                    } else {
+                      pageNum = currentPage - 2 + i
+                    }
+
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={currentPage === pageNum ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => goToPage(pageNum)}
+                        className="w-10"
+                      >
+                        {pageNum}
+                      </Button>
+                    )
+                  })}
+                  {totalPages > 5 && currentPage < totalPages - 2 && (
+                    <>
+                      <span className="text-muted-foreground px-2">...</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => goToPage(totalPages)}
+                        className="w-10"
+                      >
+                        {totalPages}
+                      </Button>
+                    </>
+                  )}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={nextPage}
+                  disabled={false}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card className="overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b">
           <div className="flex items-center justify-between">
@@ -91,7 +213,20 @@ export function TransfersTab() {
                 </tr>
               </thead>
               <tbody>
-                {transfers.map((transfer, index) => {
+                {transfers
+                  .filter(transfer => {
+                    // Comprehensive validation - ensure all required data exists
+                    if (!transfer || !transfer.from || !transfer.to) return false
+                    if (!transfer.from.address || !transfer.to.address) return false
+                    if (!transfer.transactionHash || !transfer.value) return false
+
+                    // Validate value is a parseable number
+                    const val = parseFloat(transfer.value)
+                    if (isNaN(val) || !isFinite(val)) return false
+
+                    return true
+                  })
+                  .map((transfer, index) => {
                   const value = parseFloat(transfer.value)
 
                   return (

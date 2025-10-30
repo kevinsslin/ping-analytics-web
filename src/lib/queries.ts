@@ -123,10 +123,11 @@ export const SWAP_COUNT_QUERY = gql`
 // ============ Transfer Queries ============
 
 export const RECENT_TRANSFERS_QUERY = gql`
-  query GetRecentTransfers($limit: Int!) {
+  query GetRecentTransfers($limit: Int!, $offset: Int!) {
     Transfer(
       order_by: [{ timestamp: desc }]
       limit: $limit
+      offset: $offset
     ) {
       id
       chainId
@@ -151,11 +152,12 @@ export const RECENT_TRANSFERS_QUERY = gql`
 `
 
 export const POOL_RELATED_TRANSFERS_QUERY = gql`
-  query GetPoolRelatedTransfers($limit: Int!, $isPoolRelated: Boolean!) {
+  query GetPoolRelatedTransfers($limit: Int!, $offset: Int!, $isPoolRelated: Boolean!) {
     Transfer(
       where: { isPoolRelated: { _eq: $isPoolRelated } }
       order_by: [{ timestamp: desc }]
       limit: $limit
+      offset: $offset
     ) {
       id
       chainId
@@ -174,6 +176,18 @@ export const POOL_RELATED_TRANSFERS_QUERY = gql`
         id
         address
         balance
+      }
+    }
+  }
+`
+
+export const TRANSFER_COUNT_QUERY = gql`
+  query GetTransferCount($isPoolRelated: Boolean) {
+    Transfer_aggregate(
+      where: $isPoolRelated != null ? { isPoolRelated: { _eq: $isPoolRelated } } : {}
+    ) {
+      aggregate {
+        count
       }
     }
   }
