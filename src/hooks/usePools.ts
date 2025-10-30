@@ -7,6 +7,9 @@ import { Pool, PoolQueryResponse, TOKEN_ADDRESS } from '@/types'
 
 // Helper function to get PING volume from a pool
 function getPingVolume(pool: Pool): number {
+  // Defensive check - return 0 if token addresses are missing
+  if (!pool.token0 || !pool.token1) return 0
+
   const isPingToken0 = pool.token0.toLowerCase() === TOKEN_ADDRESS.toLowerCase()
   const isPingToken1 = pool.token1.toLowerCase() === TOKEN_ADDRESS.toLowerCase()
 

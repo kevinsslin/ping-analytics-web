@@ -22,6 +22,9 @@ export function PoolsTab() {
 
     const unknownTokens = new Set<string>()
     pools.forEach(pool => {
+      // Defensive check - skip pools with missing token data
+      if (!pool.token0 || !pool.token1) return
+
       const addr0 = pool.token0.toLowerCase()
       const addr1 = pool.token1.toLowerCase()
 

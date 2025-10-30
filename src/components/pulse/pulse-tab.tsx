@@ -11,7 +11,8 @@ import { Button } from '@/components/ui/button'
 import { useState, useEffect, useRef } from 'react'
 
 // Helper function to get token symbol from address
-function getTokenSymbol(address: string, tokenNames: Record<string, string>): string {
+function getTokenSymbol(address: string | undefined, tokenNames: Record<string, string>): string {
+  if (!address) return '?'
   const addr = address.toLowerCase()
   if (addr === TOKEN_ADDRESS.toLowerCase()) return 'PING'
   if (addr === USDC_ADDRESS.toLowerCase()) return 'USDC'
@@ -98,15 +99,16 @@ export function PulseTab() {
 
     const unknownTokens = new Set<string>()
     swaps.forEach(swap => {
-      if (!swap.pool) return
+      // Defensive check - skip swaps with missing pool or token data
+      if (!swap.pool || !swap.pool.token0 || !swap.pool.token1) return
 
-      const addr0 = swap.pool.token0?.toLowerCase()
-      const addr1 = swap.pool.token1?.toLowerCase()
+      const addr0 = swap.pool.token0.toLowerCase()
+      const addr1 = swap.pool.token1.toLowerCase()
 
-      if (addr0 && addr0 !== TOKEN_ADDRESS.toLowerCase() && addr0 !== USDC_ADDRESS.toLowerCase()) {
+      if (addr0 !== TOKEN_ADDRESS.toLowerCase() && addr0 !== USDC_ADDRESS.toLowerCase()) {
         unknownTokens.add(swap.pool.token0)
       }
-      if (addr1 && addr1 !== TOKEN_ADDRESS.toLowerCase() && addr1 !== USDC_ADDRESS.toLowerCase()) {
+      if (addr1 !== TOKEN_ADDRESS.toLowerCase() && addr1 !== USDC_ADDRESS.toLowerCase()) {
         unknownTokens.add(swap.pool.token1)
       }
     })
@@ -315,7 +317,10 @@ export function PulseTab() {
             </div>
           ) : (
             <div className="max-h-[400px] sm:max-h-[600px] overflow-y-auto">
-              {swaps.slice(0, DISPLAY_LIMIT).map((swap, index) => {
+              {swaps
+                .filter(swap => swap.pool && swap.pool.token0 && swap.pool.token1 && swap.pool.feeTier)
+                .slice(0, DISPLAY_LIMIT)
+                .map((swap, index) => {
                 const amount1 = parseFloat(swap.amount1)
                 const amount0 = parseFloat(swap.amount0)
 
