@@ -99,8 +99,8 @@ export function PoolsTab() {
                 <th className="text-left p-3 font-medium text-xs">Token Pair</th>
                 <th className="text-right p-3 font-medium text-xs">Fee</th>
                 <th className="text-right p-3 font-medium text-xs">Liquidity</th>
-                <th className="text-right p-3 font-medium text-xs">Volume (0)</th>
-                <th className="text-right p-3 font-medium text-xs">Volume (1)</th>
+                <th className="text-right p-3 font-medium text-xs">Volume Token0</th>
+                <th className="text-right p-3 font-medium text-xs">Volume Token1</th>
                 <th className="text-right p-3 font-medium text-xs">Avg Swap</th>
                 <th className="text-right p-3 font-medium text-xs">Swaps</th>
                 <th className="text-left p-3 font-medium text-xs">Age</th>
@@ -168,10 +168,18 @@ export function PoolsTab() {
                         {formatNumber(pool.liquidity)}
                       </td>
                       <td className="p-3 text-right font-mono text-xs">
-                        ${formatTokenAmount(volumeToken0, 1)}
+                        {volumeToken0 === 0 ? (
+                          <span className="text-muted-foreground/50 text-xs">No trades</span>
+                        ) : (
+                          `$${formatTokenAmount(volumeToken0, 1)}`
+                        )}
                       </td>
                       <td className="p-3 text-right font-mono text-xs">
-                        {formatTokenAmount(volumeToken1, 0)}
+                        {volumeToken1 === 0 ? (
+                          <span className="text-muted-foreground/50 text-xs">No trades</span>
+                        ) : (
+                          formatTokenAmount(volumeToken1, 0)
+                        )}
                       </td>
                       <td className="p-3 text-right font-mono text-xs text-muted-foreground">
                         ${formatTokenAmount(avgSwapSize, 2)}

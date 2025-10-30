@@ -23,9 +23,9 @@ export function useAccounts(
       const data = await fetchGraphQL<{ Account_aggregate: { aggregate: { count: number } } }>(
         ACCOUNT_COUNT_QUERY
       )
-      if (data.Account_aggregate?.aggregate?.count) {
-        setTotalHolders(data.Account_aggregate.aggregate.count)
-      }
+      // Use nullish coalescing to handle 0 count correctly (0 is a valid value, not falsy)
+      const count = data.Account_aggregate?.aggregate?.count ?? 0
+      setTotalHolders(count)
     } catch (err) {
       console.error('Error fetching total count:', err)
     }
