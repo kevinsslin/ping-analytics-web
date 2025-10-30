@@ -105,7 +105,14 @@ export function PoolDetailsModal({ poolAddress, onClose }: PoolDetailsModalProps
                           </thead>
                           <tbody>
                             {activities
-                              .filter(activity => activity && activity.id && activity.date && activity.dailySwaps)
+                              .filter(activity => {
+                                if (!activity || !activity.id || !activity.date) return false
+                                if (!activity.dailySwaps) return false
+                                // Validate dailySwaps is a valid number
+                                const swaps = typeof activity.dailySwaps === 'string' ? parseFloat(activity.dailySwaps) : activity.dailySwaps
+                                if (isNaN(swaps) || !isFinite(swaps)) return false
+                                return true
+                              })
                               .map((activity) => (
                               <tr key={activity.id} className="border-b hover:bg-muted/50">
                                 <td className="p-2">{activity.date}</td>
@@ -141,7 +148,16 @@ export function PoolDetailsModal({ poolAddress, onClose }: PoolDetailsModalProps
                           </thead>
                           <tbody>
                             {activities
-                              .filter(activity => activity && activity.id && activity.date && activity.dailyVolumeToken0 && activity.dailyVolumeToken1)
+                              .filter(activity => {
+                                if (!activity || !activity.id || !activity.date) return false
+                                if (!activity.dailyVolumeToken0 || !activity.dailyVolumeToken1) return false
+                                // Validate volumes are valid numbers
+                                const vol0 = typeof activity.dailyVolumeToken0 === 'string' ? parseFloat(activity.dailyVolumeToken0) : activity.dailyVolumeToken0
+                                const vol1 = typeof activity.dailyVolumeToken1 === 'string' ? parseFloat(activity.dailyVolumeToken1) : activity.dailyVolumeToken1
+                                if (isNaN(vol0) || !isFinite(vol0)) return false
+                                if (isNaN(vol1) || !isFinite(vol1)) return false
+                                return true
+                              })
                               .map((activity) => (
                               <tr key={activity.id} className="border-b hover:bg-muted/50">
                                 <td className="p-2">{activity.date}</td>
@@ -179,7 +195,16 @@ export function PoolDetailsModal({ poolAddress, onClose }: PoolDetailsModalProps
                           </thead>
                           <tbody>
                             {activities
-                              .filter(activity => activity && activity.id && activity.date && activity.liquidityStart && activity.liquidityEnd)
+                              .filter(activity => {
+                                if (!activity || !activity.id || !activity.date) return false
+                                if (!activity.liquidityStart || !activity.liquidityEnd) return false
+                                // Validate liquidity values are valid numbers
+                                const startLiq = typeof activity.liquidityStart === 'string' ? parseFloat(activity.liquidityStart) : activity.liquidityStart
+                                const endLiq = typeof activity.liquidityEnd === 'string' ? parseFloat(activity.liquidityEnd) : activity.liquidityEnd
+                                if (isNaN(startLiq) || !isFinite(startLiq)) return false
+                                if (isNaN(endLiq) || !isFinite(endLiq)) return false
+                                return true
+                              })
                               .map((activity) => {
                               const startLiq = parseFloat(activity.liquidityStart)
                               const endLiq = parseFloat(activity.liquidityEnd)

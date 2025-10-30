@@ -44,7 +44,14 @@ export function formatTokenAmount(value: number | string, decimals = 2): string 
 }
 
 export function formatNumber(value: number | string): string {
+  // Handle null/undefined early
+  if (value === null || value === undefined) return '0'
+
   const num = typeof value === 'string' ? parseFloat(value) : value
+
+  // Handle NaN and Infinity
+  if (!isFinite(num) || isNaN(num)) return '0'
+
   return new Intl.NumberFormat('en-US').format(num)
 }
 

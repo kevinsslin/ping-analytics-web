@@ -24,9 +24,11 @@ export function usePoolActivity(
 
     try {
       setLoading(true)
+      // Normalize pool address to lowercase for consistent database matching
+      const normalizedAddress = poolAddress.toLowerCase()
       const data = await fetchGraphQL<DailyPoolActivityQueryResponse>(
         DAILY_POOL_ACTIVITY_QUERY,
-        { limit, poolAddress }
+        { limit, poolAddress: normalizedAddress }
       )
 
       if (data.DailyPoolActivity) {
