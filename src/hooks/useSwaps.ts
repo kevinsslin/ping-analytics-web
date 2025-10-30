@@ -11,17 +11,38 @@ export function useSwaps(limit = 25, pollInterval: number | null = null) {
   const [swaps, setSwaps] = useState<Swap[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const isInitialFetchRef = useRef(true)
 
   const fetchSwaps = useCallback(async () => {
     try {
-      // Simple polling: always fetch the latest N swaps
       const data = await fetchGraphQL<SwapQueryResponse>(
         RECENT_SWAPS_QUERY,
         { limit }
       )
 
       if (data.Swap && data.Swap.length > 0) {
-        setSwaps(data.Swap)
+        if (isInitialFetchRef.current) {
+          // Initial load: just set the data
+          setSwaps(data.Swap)
+          isInitialFetchRef.current = false
+        } else {
+          // Subsequent polls: merge new items with existing ones
+          setSwaps(prevSwaps => {
+            // Get IDs of existing swaps
+            const existingIds = new Set(prevSwaps.map(s => s.id))
+            // Find truly new swaps (not in existing list)
+            const newSwaps = data.Swap.filter(s => !existingIds.has(s.id))
+
+            if (newSwaps.length > 0) {
+              // Prepend new swaps to the front, limit total size
+              const combined = [...newSwaps, ...prevSwaps]
+              return combined.slice(0, MAX_SWAPS)
+            }
+
+            // No new swaps, keep existing
+            return prevSwaps
+          })
+        }
         setError(null)
       }
       setLoading(false)

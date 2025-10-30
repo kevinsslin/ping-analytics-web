@@ -37,7 +37,7 @@ export function useTransfers(
 
   const fetchTransfers = useCallback(async (page: number) => {
     try {
-      // Live updates mode: simple polling - always fetch latest
+      // Live updates mode: polling with merge
       if (useLiveUpdates) {
         const data = await fetchGraphQL<TransferQueryResponse>(
           RECENT_TRANSFERS_QUERY,
@@ -45,7 +45,28 @@ export function useTransfers(
         )
 
         if (data.Transfer && data.Transfer.length > 0) {
-          setTransfers(data.Transfer)
+          if (isInitialFetchRef.current) {
+            // Initial load: just set the data
+            setTransfers(data.Transfer)
+            isInitialFetchRef.current = false
+          } else {
+            // Subsequent polls: merge new items with existing ones
+            setTransfers(prevTransfers => {
+              // Get IDs of existing transfers
+              const existingIds = new Set(prevTransfers.map(t => t.id))
+              // Find truly new transfers (not in existing list)
+              const newTransfers = data.Transfer.filter(t => !existingIds.has(t.id))
+
+              if (newTransfers.length > 0) {
+                // Prepend new transfers to the front, limit total size
+                const combined = [...newTransfers, ...prevTransfers]
+                return combined.slice(0, MAX_TRANSFERS)
+              }
+
+              // No new transfers, keep existing
+              return prevTransfers
+            })
+          }
           setError(null)
         }
         setLoading(false)
