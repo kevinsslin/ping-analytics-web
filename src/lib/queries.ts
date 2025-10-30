@@ -123,6 +123,35 @@ export const RECENT_SWAPS_QUERY = gql`
   }
 `
 
+export const RECENT_SWAPS_AFTER_TIMESTAMP_QUERY = gql`
+  query GetRecentSwapsAfterTimestamp($afterTimestamp: String!) {
+    Swap(
+      where: { timestamp: { _gt: $afterTimestamp } }
+      order_by: [{ timestamp: desc }]
+    ) {
+      id
+      chainId
+      transactionHash
+      timestamp
+      blockNumber
+      sender
+      recipient
+      amount0
+      amount1
+      sqrtPriceX96
+      liquidity
+      tick
+      pool {
+        id
+        address
+        token0
+        token1
+        feeTier
+      }
+    }
+  }
+`
+
 export const SWAP_COUNT_QUERY = gql`
   query GetSwapCount($poolId: String!) {
     Swap_aggregate(where: { pool: { id: { _eq: $poolId } } }) {
@@ -201,6 +230,34 @@ export const TRANSFER_COUNT_QUERY = gql`
     ) {
       aggregate {
         count
+      }
+    }
+  }
+`
+
+export const RECENT_TRANSFERS_AFTER_TIMESTAMP_QUERY = gql`
+  query GetRecentTransfersAfterTimestamp($afterTimestamp: String!) {
+    Transfer(
+      where: { timestamp: { _gt: $afterTimestamp } }
+      order_by: [{ timestamp: desc }]
+    ) {
+      id
+      chainId
+      transactionHash
+      timestamp
+      blockNumber
+      value
+      isPoolRelated
+      poolRelatedType
+      from {
+        id
+        address
+        balance
+      }
+      to {
+        id
+        address
+        balance
       }
     }
   }
