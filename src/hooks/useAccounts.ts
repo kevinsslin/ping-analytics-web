@@ -10,7 +10,7 @@ type SortType = 'balance' | 'activity'
 export function useAccounts(
   pageSize = 100,
   sortBy: SortType = 'balance',
-  pollInterval = 10000
+  pollInterval: number | null = null // null = no polling
 ) {
   const [accounts, setAccounts] = useState<Account[]>([])
   const [loading, setLoading] = useState(true)
@@ -34,7 +34,9 @@ export function useAccounts(
   const fetchAccounts = useCallback(async (page: number) => {
     try {
       setLoading(true)
-      const offset = (page - 1) * pageSize
+      // Ensure page is valid and offset is never negative
+      const validPage = Math.max(1, Math.min(page, Math.ceil(totalHolders / pageSize) || 1))
+      const offset = Math.max(0, (validPage - 1) * pageSize)
       const query = sortBy === 'balance' ? TOP_HOLDERS_QUERY : MOST_ACTIVE_ACCOUNTS_QUERY
 
       const data = await fetchGraphQL<AccountQueryResponse>(
@@ -52,7 +54,7 @@ export function useAccounts(
       setError(err.message || 'Failed to fetch accounts')
       setLoading(false)
     }
-  }, [pageSize, sortBy])
+  }, [pageSize, sortBy, totalHolders])
 
   // Fetch total count on mount
   useEffect(() => {
@@ -63,29 +65,33 @@ export function useAccounts(
   useEffect(() => {
     fetchAccounts(currentPage)
 
-    const interval = setInterval(() => {
-      if (!document.hidden) {
-        fetchAccounts(currentPage)
+    // Only set up polling if pollInterval is provided
+    if (pollInterval !== null) {
+      const interval = setInterval(() => {
+        if (!document.hidden) {
+          fetchAccounts(currentPage)
+        }
+      }, pollInterval)
+
+      const handleVisibilityChange = () => {
+        if (!document.hidden) {
+          fetchAccounts(currentPage)
+        }
       }
-    }, pollInterval)
 
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        fetchAccounts(currentPage)
+      document.addEventListener('visibilitychange', handleVisibilityChange)
+
+      return () => {
+        clearInterval(interval)
+        document.removeEventListener('visibilitychange', handleVisibilityChange)
       }
-    }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-
-    return () => {
-      clearInterval(interval)
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [fetchAccounts, currentPage, pollInterval])
 
   const goToPage = useCallback((page: number) => {
-    setCurrentPage(page)
-  }, [])
+    const validPage = Math.max(1, Math.min(page, Math.ceil(totalHolders / pageSize) || 1))
+    setCurrentPage(validPage)
+  }, [totalHolders, pageSize])
 
   const nextPage = useCallback(() => {
     setCurrentPage(prev => Math.min(prev + 1, Math.ceil(totalHolders / pageSize)))

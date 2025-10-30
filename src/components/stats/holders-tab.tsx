@@ -11,6 +11,8 @@ import { useState } from 'react'
 
 export function HoldersTab() {
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null)
+  const [pageSize, setPageSize] = useState(100)
+
   const {
     accounts,
     loading,
@@ -18,11 +20,11 @@ export function HoldersTab() {
     currentPage,
     totalPages,
     totalHolders,
-    pageSize,
+    pageSize: currentPageSize,
     goToPage,
     nextPage,
     prevPage
-  } = useAccounts(100, 'balance')
+  } = useAccounts(pageSize, 'balance', null) // null = no auto-refresh
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
@@ -34,8 +36,13 @@ export function HoldersTab() {
     return `https://basescan.org/tx/${hash}`
   }
 
-  const startIndex = (currentPage - 1) * pageSize
-  const endIndex = Math.min(startIndex + pageSize, totalHolders)
+  const startIndex = (currentPage - 1) * currentPageSize
+  const endIndex = Math.min(startIndex + currentPageSize, totalHolders)
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize)
+    goToPage(1) // Reset to first page when changing page size
+  }
 
   if (loading) {
     return <LoadingCard />
@@ -55,7 +62,98 @@ export function HoldersTab() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* Pagination and Page Size Controls */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            {/* Left side - Page size selector */}
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-muted-foreground">Show</span>
+              <div className="flex gap-1">
+                {[10, 20, 50, 100].map((size) => (
+                  <Button
+                    key={size}
+                    variant={pageSize === size ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handlePageSizeChange(size)}
+                    className="w-12"
+                  >
+                    {size}
+                  </Button>
+                ))}
+              </div>
+              <span className="text-sm text-muted-foreground">per page</span>
+            </div>
+
+            {/* Right side - Page navigation */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
+              <div className="text-sm text-muted-foreground">
+                Showing {startIndex + 1}-{endIndex} of {totalHolders} holders
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={prevPage}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                    let pageNum
+                    if (totalPages <= 5) {
+                      pageNum = i + 1
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i
+                    } else {
+                      pageNum = currentPage - 2 + i
+                    }
+
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={currentPage === pageNum ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => goToPage(pageNum)}
+                        className="w-10"
+                      >
+                        {pageNum}
+                      </Button>
+                    )
+                  })}
+                  {totalPages > 5 && currentPage < totalPages - 2 && (
+                    <>
+                      <span className="text-muted-foreground px-2">...</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => goToPage(totalPages)}
+                        className="w-10"
+                      >
+                        {totalPages}
+                      </Button>
+                    </>
+                  )}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={nextPage}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Holders Table */}
       <Card className="overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b">
           <CardTitle className="flex items-center gap-2">
@@ -63,7 +161,7 @@ export function HoldersTab() {
             Top Holders
           </CardTitle>
           <CardDescription>
-            Ranked by balance • Showing {startIndex + 1}-{endIndex} of {totalHolders} holders
+            Ranked by balance
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -204,74 +302,6 @@ export function HoldersTab() {
                 })}
               </tbody>
             </table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Pagination Controls */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="text-sm text-muted-foreground">
-              Showing {startIndex + 1}-{endIndex} of {totalHolders} holders
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={prevPage}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </Button>
-              <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                  let pageNum
-                  if (totalPages <= 5) {
-                    pageNum = i + 1
-                  } else if (currentPage <= 3) {
-                    pageNum = i + 1
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i
-                  } else {
-                    pageNum = currentPage - 2 + i
-                  }
-
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={currentPage === pageNum ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => goToPage(pageNum)}
-                      className="w-10"
-                    >
-                      {pageNum}
-                    </Button>
-                  )
-                })}
-                {totalPages > 5 && currentPage < totalPages - 2 && (
-                  <>
-                    <span className="text-muted-foreground px-2">...</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => goToPage(totalPages)}
-                      className="w-10"
-                    >
-                      {totalPages}
-                    </Button>
-                  </>
-                )}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={nextPage}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </Button>
-            </div>
           </div>
         </CardContent>
       </Card>

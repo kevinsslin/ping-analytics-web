@@ -76,3 +76,89 @@ export function getTimeAgo(timestamp: number | string): string {
   if (minutes > 0) return `${minutes}m ago`
   return `${seconds}s ago`
 }
+
+// ERC20 Token Info via RPC
+const BASE_RPC_URL = 'https://mainnet.base.org'
+
+// Simple in-memory cache for token info
+const tokenInfoCache: Record<string, { symbol: string; name: string; decimals: number }> = {}
+
+export async function fetchTokenInfo(address: string): Promise<{ symbol: string; name: string; decimals: number } | null> {
+  // Check cache first
+  if (tokenInfoCache[address.toLowerCase()]) {
+    return tokenInfoCache[address.toLowerCase()]
+  }
+
+  try {
+    // ERC20 function selectors
+    const symbolSelector = '0x95d89b41' // symbol()
+    const nameSelector = '0x06fdde03' // name()
+    const decimalsSelector = '0x313ce567' // decimals()
+
+    const [symbolResult, nameResult, decimalsResult] = await Promise.all([
+      fetch(BASE_RPC_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'eth_call',
+          params: [{ to: address, data: symbolSelector }, 'latest'],
+          id: 1
+        })
+      }).then(r => r.json()),
+      fetch(BASE_RPC_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'eth_call',
+          params: [{ to: address, data: nameSelector }, 'latest'],
+          id: 2
+        })
+      }).then(r => r.json()),
+      fetch(BASE_RPC_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'eth_call',
+          params: [{ to: address, data: decimalsSelector }, 'latest'],
+          id: 3
+        })
+      }).then(r => r.json())
+    ])
+
+    // Decode results (simple ABI decoding for string and uint8)
+    const symbol = decodeString(symbolResult.result)
+    const name = decodeString(nameResult.result)
+    const decimals = parseInt(decimalsResult.result, 16)
+
+    const info = { symbol, name, decimals }
+    tokenInfoCache[address.toLowerCase()] = info
+    return info
+  } catch (error) {
+    console.error(`Failed to fetch token info for ${address}:`, error)
+    return null
+  }
+}
+
+// Simple ABI decoding for strings
+function decodeString(hex: string): string {
+  if (!hex || hex === '0x') return ''
+  try {
+    // Remove 0x prefix
+    const data = hex.slice(2)
+    // Skip first 64 chars (offset) and next 64 chars (length)
+    const stringData = data.slice(128)
+    // Convert hex to string
+    let result = ''
+    for (let i = 0; i < stringData.length; i += 2) {
+      const byte = parseInt(stringData.substr(i, 2), 16)
+      if (byte === 0) break
+      result += String.fromCharCode(byte)
+    }
+    return result
+  } catch {
+    return ''
+  }
+}
