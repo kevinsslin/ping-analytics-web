@@ -14,6 +14,9 @@ interface PoolDetailsModalProps {
 }
 
 export function PoolDetailsModal({ poolAddress, onClose }: PoolDetailsModalProps) {
+  // Fetch pool activity data (must be called before any early returns)
+  const { activities, loading, error } = usePoolActivity(poolAddress, 30, null)
+
   // Close on Escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -26,9 +29,6 @@ export function PoolDetailsModal({ poolAddress, onClose }: PoolDetailsModalProps
   }, [poolAddress, onClose])
 
   if (!poolAddress) return null
-
-  // Fetch pool activity data
-  const { activities, loading, error } = usePoolActivity(poolAddress, 30, null)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -104,7 +104,9 @@ export function PoolDetailsModal({ poolAddress, onClose }: PoolDetailsModalProps
                             </tr>
                           </thead>
                           <tbody>
-                            {activities.map((activity) => (
+                            {activities
+                              .filter(activity => activity && activity.id && activity.date && activity.dailySwaps)
+                              .map((activity) => (
                               <tr key={activity.id} className="border-b hover:bg-muted/50">
                                 <td className="p-2">{activity.date}</td>
                                 <td className="p-2 text-right font-mono">{formatNumber(activity.dailySwaps)}</td>
@@ -138,7 +140,9 @@ export function PoolDetailsModal({ poolAddress, onClose }: PoolDetailsModalProps
                             </tr>
                           </thead>
                           <tbody>
-                            {activities.map((activity) => (
+                            {activities
+                              .filter(activity => activity && activity.id && activity.date && activity.dailyVolumeToken0 && activity.dailyVolumeToken1)
+                              .map((activity) => (
                               <tr key={activity.id} className="border-b hover:bg-muted/50">
                                 <td className="p-2">{activity.date}</td>
                                 <td className="p-2 text-right font-mono">${formatTokenAmount(activity.dailyVolumeToken0, 2)}</td>
@@ -174,7 +178,9 @@ export function PoolDetailsModal({ poolAddress, onClose }: PoolDetailsModalProps
                             </tr>
                           </thead>
                           <tbody>
-                            {activities.map((activity) => {
+                            {activities
+                              .filter(activity => activity && activity.id && activity.date && activity.liquidityStart && activity.liquidityEnd)
+                              .map((activity) => {
                               const startLiq = parseFloat(activity.liquidityStart)
                               const endLiq = parseFloat(activity.liquidityEnd)
                               const change = endLiq - startLiq

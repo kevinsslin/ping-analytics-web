@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useSwaps } from '@/hooks/useSwaps'
 import { LoadingCard } from '@/components/shared/loading'
 import { shortenAddress, getTimeAgo, getBlockExplorerTxUrl } from '@/lib/utils'
-import { TOKEN_SYMBOL, USDC_SYMBOL, PING_DECIMALS, USDC_DECIMALS } from '@/types'
+import { TOKEN_SYMBOL, USDC_SYMBOL, PING_DECIMALS, USDC_DECIMALS, TOKEN_ADDRESS } from '@/types'
 import { ExternalLink, Copy, Activity, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
@@ -67,8 +67,18 @@ export function SwapsTab() {
                   const amount0 = parseFloat(swap.amount0)
                   const amount1 = parseFloat(swap.amount1)
 
-                  // Determine swap direction
-                  const isBuy = amount1 < 0 // Negative PING means user is buying PING (selling USDC)
+                  // Determine swap direction - works for any pool with PING
+                  // Positive amount = tokens flowing TO user (user receives)
+                  // Negative amount = tokens flowing FROM user (user sends)
+                  const isPingToken0 = swap.pool?.token0?.toLowerCase() === TOKEN_ADDRESS.toLowerCase()
+                  const isPingToken1 = swap.pool?.token1?.toLowerCase() === TOKEN_ADDRESS.toLowerCase()
+
+                  let isBuy = false
+                  if (isPingToken0) {
+                    isBuy = amount0 > 0  // Positive PING amount = receiving PING = Buy
+                  } else if (isPingToken1) {
+                    isBuy = amount1 > 0  // Positive PING amount = receiving PING = Buy
+                  }
 
                   return (
                     <tr
