@@ -187,7 +187,20 @@ export function PulseTab() {
             </div>
           ) : (
             <div className="max-h-[400px] sm:max-h-[600px] overflow-y-auto">
-              {transfers.slice(0, DISPLAY_LIMIT).map((transfer, index) => {
+              {transfers
+                .filter(transfer => {
+                  // Comprehensive validation - ensure all required data exists
+                  if (!transfer || !transfer.from || !transfer.to) return false
+                  if (!transfer.from.address || !transfer.to.address) return false
+                  if (!transfer.transactionHash || !transfer.value) return false
+
+                  // Validate value is a parseable number
+                  const val = parseFloat(transfer.value)
+                  if (isNaN(val) || !isFinite(val)) return false
+
+                  return true
+                })
+                .slice(0, DISPLAY_LIMIT).map((transfer, index) => {
                 const value = parseFloat(transfer.value)
 
                 const isNew = newTransferIds.has(transfer.id)
@@ -239,14 +252,17 @@ export function PulseTab() {
                         >
                           {shortenAddress(transfer.from.address)}
                         </a>
-                        {SPECIAL_ADDRESSES?.[transfer.from.address.toLowerCase()] && (
-                          <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${SPECIAL_ADDRESSES[transfer.from.address.toLowerCase()].bgColor}`}>
-                            <BadgeCheck className="h-3 w-3" />
-                            <span className={`text-xs font-semibold ${SPECIAL_ADDRESSES[transfer.from.address.toLowerCase()].color}`}>
-                              {SPECIAL_ADDRESSES[transfer.from.address.toLowerCase()].label}
-                            </span>
-                          </div>
-                        )}
+                        {(() => {
+                          const specialLabel = SPECIAL_ADDRESSES?.[transfer.from.address.toLowerCase()]
+                          return specialLabel && (
+                            <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${specialLabel.bgColor}`}>
+                              <BadgeCheck className="h-3 w-3" />
+                              <span className={`text-xs font-semibold ${specialLabel.color}`}>
+                                {specialLabel.label}
+                              </span>
+                            </div>
+                          )
+                        })()}
                       </div>
                       <div className="flex items-center gap-2 text-xs">
                         <span className="font-medium text-muted-foreground">To:</span>
@@ -258,14 +274,17 @@ export function PulseTab() {
                         >
                           {shortenAddress(transfer.to.address)}
                         </a>
-                        {SPECIAL_ADDRESSES?.[transfer.to.address.toLowerCase()] && (
-                          <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${SPECIAL_ADDRESSES[transfer.to.address.toLowerCase()].bgColor}`}>
-                            <BadgeCheck className="h-3 w-3" />
-                            <span className={`text-xs font-semibold ${SPECIAL_ADDRESSES[transfer.to.address.toLowerCase()].color}`}>
-                              {SPECIAL_ADDRESSES[transfer.to.address.toLowerCase()].label}
-                            </span>
-                          </div>
-                        )}
+                        {(() => {
+                          const specialLabel = SPECIAL_ADDRESSES?.[transfer.to.address.toLowerCase()]
+                          return specialLabel && (
+                            <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${specialLabel.bgColor}`}>
+                              <BadgeCheck className="h-3 w-3" />
+                              <span className={`text-xs font-semibold ${specialLabel.color}`}>
+                                {specialLabel.label}
+                              </span>
+                            </div>
+                          )
+                        })()}
                       </div>
                     </div>
 
@@ -342,6 +361,9 @@ export function PulseTab() {
                   if (!swap || !swap.pool) return false
                   if (!swap.pool.token0 || !swap.pool.token1 || !swap.pool.feeTier) return false
                   if (!swap.amount0 || !swap.amount1) return false
+
+                  // Validate required swap fields
+                  if (!swap.sender || !swap.recipient || !swap.transactionHash) return false
 
                   // Validate amounts are parseable numbers
                   const amt0 = parseFloat(swap.amount0)
@@ -455,14 +477,17 @@ export function PulseTab() {
                         >
                           {shortenAddress(swap.sender)}
                         </a>
-                        {SPECIAL_ADDRESSES?.[swap.sender.toLowerCase()] && (
-                          <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${SPECIAL_ADDRESSES[swap.sender.toLowerCase()].bgColor}`}>
-                            <BadgeCheck className="h-3 w-3" />
-                            <span className={`text-xs font-semibold ${SPECIAL_ADDRESSES[swap.sender.toLowerCase()].color}`}>
-                              {SPECIAL_ADDRESSES[swap.sender.toLowerCase()].label}
-                            </span>
-                          </div>
-                        )}
+                        {(() => {
+                          const specialLabel = SPECIAL_ADDRESSES?.[swap.sender.toLowerCase()]
+                          return specialLabel && (
+                            <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${specialLabel.bgColor}`}>
+                              <BadgeCheck className="h-3 w-3" />
+                              <span className={`text-xs font-semibold ${specialLabel.color}`}>
+                                {specialLabel.label}
+                              </span>
+                            </div>
+                          )
+                        })()}
                       </div>
                       <div className="flex items-center gap-2 text-xs">
                         <span className="font-medium text-muted-foreground">To:</span>
@@ -474,14 +499,17 @@ export function PulseTab() {
                         >
                           {shortenAddress(swap.recipient)}
                         </a>
-                        {SPECIAL_ADDRESSES?.[swap.recipient.toLowerCase()] && (
-                          <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${SPECIAL_ADDRESSES[swap.recipient.toLowerCase()].bgColor}`}>
-                            <BadgeCheck className="h-3 w-3" />
-                            <span className={`text-xs font-semibold ${SPECIAL_ADDRESSES[swap.recipient.toLowerCase()].color}`}>
-                              {SPECIAL_ADDRESSES[swap.recipient.toLowerCase()].label}
-                            </span>
-                          </div>
-                        )}
+                        {(() => {
+                          const specialLabel = SPECIAL_ADDRESSES?.[swap.recipient.toLowerCase()]
+                          return specialLabel && (
+                            <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${specialLabel.bgColor}`}>
+                              <BadgeCheck className="h-3 w-3" />
+                              <span className={`text-xs font-semibold ${specialLabel.color}`}>
+                                {specialLabel.label}
+                              </span>
+                            </div>
+                          )
+                        })()}
                       </div>
                     </div>
 
