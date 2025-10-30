@@ -82,9 +82,8 @@ export const ALL_POOLS_QUERY = gql`
 // ============ Swap Queries ============
 
 export const RECENT_SWAPS_QUERY = gql`
-  query GetRecentSwaps($limit: Int!, $poolId: String!) {
+  query GetRecentSwaps($limit: Int!) {
     Swap(
-      where: { pool: { id: { _eq: $poolId } } }
       order_by: [{ timestamp: desc }]
       limit: $limit
     ) {
@@ -103,6 +102,9 @@ export const RECENT_SWAPS_QUERY = gql`
       pool {
         id
         address
+        token0
+        token1
+        feeTier
       }
     }
   }

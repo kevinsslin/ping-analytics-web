@@ -4,11 +4,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useSwaps } from '@/hooks/useSwaps'
 import { useTransfers } from '@/hooks/useTransfers'
 import { LoadingCard } from '@/components/shared/loading'
-import { shortenAddress, getTimeAgo, formatTokenAmount, getBlockExplorerTxUrl, getBlockExplorerAddressUrl } from '@/lib/utils'
-import { TOKEN_SYMBOL, SPECIAL_ADDRESSES } from '@/types'
-import { ExternalLink, Copy, ArrowUpRight, ArrowDownRight, Activity, BadgeCheck } from 'lucide-react'
+import { shortenAddress, getTimeAgo, formatTokenAmount, getBlockExplorerTxUrl, getBlockExplorerAddressUrl, fetchTokenInfo } from '@/lib/utils'
+import { TOKEN_SYMBOL, SPECIAL_ADDRESSES, TOKEN_ADDRESS, USDC_ADDRESS, Swap } from '@/types'
+import { ExternalLink, Copy, ArrowUpRight, ArrowDownRight, Activity, BadgeCheck, Droplets } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useState, useEffect, useRef } from 'react'
+
+// Helper function to get token symbol from address
+function getTokenSymbol(address: string, tokenNames: Record<string, string>): string {
+  const addr = address.toLowerCase()
+  if (addr === TOKEN_ADDRESS.toLowerCase()) return 'PING'
+  if (addr === USDC_ADDRESS.toLowerCase()) return 'USDC'
+  return tokenNames[addr] || shortenAddress(address)
+}
+
+// Helper function to format fee tier as percentage
+function formatFeeTier(feeTier: string): string {
+  const feeValue = parseFloat(feeTier) / 10000
+  return `${feeValue.toFixed(2)}%`
+}
 
 export function PulseTab() {
   const DISPLAY_LIMIT = 15 // Show 15 items instead of 3
@@ -19,6 +33,8 @@ export function PulseTab() {
   const [newTransferIds, setNewTransferIds] = useState<Set<string>>(new Set())
   const prevSwapsRef = useRef<string[]>([])
   const prevTransfersRef = useRef<string[]>([])
+  const [tokenNames, setTokenNames] = useState<Record<string, string>>({})
+  const [fetchingTokens, setFetchingTokens] = useState(false)
 
   // Track new swaps with TRUE staggered animation (one-by-one)
   useEffect(() => {
@@ -75,6 +91,43 @@ export function PulseTab() {
       prevTransfersRef.current = currentIds
     }
   }, [transfers, transfersLoading])
+
+  // Fetch token names for unknown tokens in swaps
+  useEffect(() => {
+    if (swaps.length === 0 || fetchingTokens) return
+
+    const unknownTokens = new Set<string>()
+    swaps.forEach(swap => {
+      if (!swap.pool) return
+
+      const addr0 = swap.pool.token0?.toLowerCase()
+      const addr1 = swap.pool.token1?.toLowerCase()
+
+      if (addr0 && addr0 !== TOKEN_ADDRESS.toLowerCase() && addr0 !== USDC_ADDRESS.toLowerCase()) {
+        unknownTokens.add(swap.pool.token0)
+      }
+      if (addr1 && addr1 !== TOKEN_ADDRESS.toLowerCase() && addr1 !== USDC_ADDRESS.toLowerCase()) {
+        unknownTokens.add(swap.pool.token1)
+      }
+    })
+
+    if (unknownTokens.size > 0) {
+      setFetchingTokens(true)
+      Promise.all(
+        Array.from(unknownTokens).map(async (address) => {
+          const info = await fetchTokenInfo(address)
+          return [address.toLowerCase(), info?.symbol || shortenAddress(address)]
+        })
+      ).then((results) => {
+        const names: Record<string, string> = {}
+        results.forEach(([address, symbol]) => {
+          names[address as string] = symbol as string
+        })
+        setTokenNames(names)
+        setFetchingTokens(false)
+      })
+    }
+  }, [swaps, fetchingTokens])
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
@@ -265,7 +318,24 @@ export function PulseTab() {
               {swaps.slice(0, DISPLAY_LIMIT).map((swap, index) => {
                 const amount1 = parseFloat(swap.amount1)
                 const amount0 = parseFloat(swap.amount0)
-                const isBuy = amount1 < 0
+
+                // Determine which token is PING and detect Buy/Sell accordingly
+                const isPingToken0 = swap.pool?.token0?.toLowerCase() === TOKEN_ADDRESS.toLowerCase()
+                const isPingToken1 = swap.pool?.token1?.toLowerCase() === TOKEN_ADDRESS.toLowerCase()
+
+                // Buy = PING amount increases (becomes negative in amount field)
+                // Sell = PING amount decreases (becomes positive in amount field)
+                let isBuy = false
+                if (isPingToken0) {
+                  isBuy = amount0 > 0  // If PING is token0, positive amount0 means buying PING
+                } else if (isPingToken1) {
+                  isBuy = amount1 > 0  // If PING is token1, positive amount1 means buying PING
+                }
+
+                // Get pool label
+                const token0Symbol = swap.pool ? getTokenSymbol(swap.pool.token0, tokenNames) : '?'
+                const token1Symbol = swap.pool ? getTokenSymbol(swap.pool.token1, tokenNames) : '?'
+                const feeTier = swap.pool?.feeTier ? formatFeeTier(swap.pool.feeTier) : '?'
 
                 const isNew = newSwapIds.has(swap.id)
 
@@ -278,7 +348,8 @@ export function PulseTab() {
                   >
                     {/* Header Row */}
                     <div className="flex items-center justify-between mb-2 sm:mb-3">
-                      <div className="flex items-center gap-1.5 sm:gap-2">
+                      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                        {/* Buy/Sell Badge */}
                         {isBuy ? (
                           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400">
                             <ArrowUpRight className="h-3.5 w-3.5" />
@@ -290,6 +361,19 @@ export function PulseTab() {
                             <span className="text-xs font-semibold">Sell</span>
                           </div>
                         )}
+
+                        {/* Pool Label */}
+                        <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-muted/50 border">
+                          <Droplets className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-xs font-semibold">
+                            {token0Symbol} / {token1Symbol}
+                          </span>
+                        </div>
+
+                        {/* Fee Tier Badge */}
+                        <span className="inline-flex items-center px-2 py-1 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-xs font-medium border border-indigo-500/20">
+                          {feeTier}
+                        </span>
                       </div>
                       <span className="text-xs text-muted-foreground font-medium">
                         {getTimeAgo(swap.timestamp)}
@@ -298,14 +382,29 @@ export function PulseTab() {
 
                     {/* Amount Row */}
                     <div className="flex items-baseline gap-1.5 sm:gap-2 mb-2">
-                      <span className="text-base sm:text-lg font-bold font-mono">
-                        {Math.abs(amount1).toFixed(2)}
-                      </span>
-                      <span className="text-xs sm:text-sm text-muted-foreground">{TOKEN_SYMBOL}</span>
-                      <span className="text-xs text-muted-foreground">≈</span>
-                      <span className="text-xs sm:text-sm font-mono text-muted-foreground">
-                        ${Math.abs(amount0).toFixed(2)}
-                      </span>
+                      {isPingToken0 ? (
+                        <>
+                          <span className="text-base sm:text-lg font-bold font-mono">
+                            {Math.abs(amount0).toFixed(2)}
+                          </span>
+                          <span className="text-xs sm:text-sm text-muted-foreground">{TOKEN_SYMBOL}</span>
+                          <span className="text-xs text-muted-foreground">for</span>
+                          <span className="text-xs sm:text-sm font-mono text-muted-foreground">
+                            {Math.abs(amount1).toFixed(2)} {token1Symbol}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-base sm:text-lg font-bold font-mono">
+                            {Math.abs(amount1).toFixed(2)}
+                          </span>
+                          <span className="text-xs sm:text-sm text-muted-foreground">{TOKEN_SYMBOL}</span>
+                          <span className="text-xs text-muted-foreground">for</span>
+                          <span className="text-xs sm:text-sm font-mono text-muted-foreground">
+                            {Math.abs(amount0).toFixed(2)} {token0Symbol}
+                          </span>
+                        </>
+                      )}
                     </div>
 
                     {/* Addresses - Sender → Recipient */}

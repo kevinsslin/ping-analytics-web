@@ -3,20 +3,18 @@
 import { useState, useEffect, useCallback } from 'react'
 import { fetchGraphQL } from '@/lib/graphql'
 import { RECENT_SWAPS_QUERY } from '@/lib/queries'
-import { Swap, SwapQueryResponse, CHAIN_ID, POOL_ADDRESS } from '@/types'
+import { Swap, SwapQueryResponse } from '@/types'
 
 export function useSwaps(limit = 25, pollInterval = 2000) {
   const [swaps, setSwaps] = useState<Swap[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const poolId = `${CHAIN_ID}_${POOL_ADDRESS.toLowerCase()}`
-
   const fetchSwaps = useCallback(async () => {
     try {
       const data = await fetchGraphQL<SwapQueryResponse>(
         RECENT_SWAPS_QUERY,
-        { limit, poolId }
+        { limit }
       )
 
       if (data.Swap) {
@@ -29,7 +27,7 @@ export function useSwaps(limit = 25, pollInterval = 2000) {
       setError(err.message || 'Failed to fetch swaps')
       setLoading(false)
     }
-  }, [limit, poolId])
+  }, [limit])
 
   useEffect(() => {
     fetchSwaps()

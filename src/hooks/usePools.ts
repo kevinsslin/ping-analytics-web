@@ -3,7 +3,22 @@
 import { useState, useEffect, useCallback } from 'react'
 import { fetchGraphQL } from '@/lib/graphql'
 import { ALL_POOLS_QUERY } from '@/lib/queries'
-import { Pool, PoolQueryResponse } from '@/types'
+import { Pool, PoolQueryResponse, TOKEN_ADDRESS } from '@/types'
+
+// Helper function to get PING volume from a pool
+function getPingVolume(pool: Pool): number {
+  const isPingToken0 = pool.token0.toLowerCase() === TOKEN_ADDRESS.toLowerCase()
+  const isPingToken1 = pool.token1.toLowerCase() === TOKEN_ADDRESS.toLowerCase()
+
+  if (isPingToken0) {
+    return parseFloat(pool.volumeToken0) || 0
+  } else if (isPingToken1) {
+    return parseFloat(pool.volumeToken1) || 0
+  }
+
+  // If PING is not in this pool, return 0
+  return 0
+}
 
 export function usePools(pollInterval = 10000) {
   const [pools, setPools] = useState<Pool[]>([])
@@ -16,7 +31,14 @@ export function usePools(pollInterval = 10000) {
       const data = await fetchGraphQL<PoolQueryResponse>(ALL_POOLS_QUERY)
 
       if (data.Pool) {
-        setPools(data.Pool)
+        // Sort pools by PING volume in descending order
+        const sortedPools = [...data.Pool].sort((a, b) => {
+          const pingVolumeA = getPingVolume(a)
+          const pingVolumeB = getPingVolume(b)
+          return pingVolumeB - pingVolumeA // Descending order
+        })
+
+        setPools(sortedPools)
         setError(null)
         setRetryCount(0)
       }
