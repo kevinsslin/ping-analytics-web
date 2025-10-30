@@ -194,10 +194,10 @@ export function HoldersTab() {
                   <th className="text-left p-2 md:p-4 font-medium">Address</th>
                   <th className="text-right p-2 md:p-4 font-medium">Balance</th>
                   <th className="text-left p-2 md:p-4 font-medium">% of Supply</th>
-                  <th className="text-right p-2 md:p-4 font-medium hidden md:table-cell">Transfers</th>
-                  <th className="text-left p-2 md:p-4 font-medium hidden lg:table-cell">Last Transfer</th>
-                  <th className="text-left p-2 md:p-4 font-medium hidden lg:table-cell">Last Buy</th>
-                  <th className="text-left p-2 md:p-4 font-medium hidden lg:table-cell">Last Sell</th>
+                  <th className="text-right p-2 md:p-4 font-medium">Transfers</th>
+                  <th className="text-left p-2 md:p-4 font-medium">Last Transfer</th>
+                  <th className="text-left p-2 md:p-4 font-medium">Last Buy</th>
+                  <th className="text-left p-2 md:p-4 font-medium">Last Sell</th>
                 </tr>
               </thead>
               <tbody>
@@ -272,12 +272,12 @@ export function HoldersTab() {
                           </span>
                         </div>
                       </td>
-                      <td className="p-2 md:p-4 text-right hidden md:table-cell">
+                      <td className="p-2 md:p-4 text-right">
                         <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-semibold">
                           {account.transferCount}
                         </span>
                       </td>
-                      <td className="p-2 md:p-4 hidden lg:table-cell">
+                      <td className="p-2 md:p-4">
                         <a
                           href={getTransactionUrl(account.lastTransferHash)}
                           target="_blank"
@@ -288,7 +288,7 @@ export function HoldersTab() {
                           <ExternalLink className="h-3 w-3" />
                         </a>
                       </td>
-                      <td className="p-2 md:p-4 hidden lg:table-cell">
+                      <td className="p-2 md:p-4">
                         {account.lastBuyAt && account.lastBuyHash ? (
                           <a
                             href={getTransactionUrl(account.lastBuyHash)}
@@ -303,7 +303,7 @@ export function HoldersTab() {
                           <span className="text-xs text-muted-foreground/50">Never</span>
                         )}
                       </td>
-                      <td className="p-2 md:p-4 hidden lg:table-cell">
+                      <td className="p-2 md:p-4">
                         {account.lastSellAt && account.lastSellHash ? (
                           <a
                             href={getTransactionUrl(account.lastSellHash)}
