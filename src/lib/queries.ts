@@ -30,15 +30,50 @@ export const POOL_QUERY = gql`
       token0
       token1
       feeTier
+      tickSpacing
       liquidity
       sqrtPriceX96
       tick
+      isActive
       volumeToken0
       volumeToken1
       txCount
       totalValueLockedToken0
       totalValueLockedToken1
       createdAt
+      createdAtBlock
+      lastSwapAt
+    }
+  }
+`
+
+export const ALL_POOLS_QUERY = gql`
+  query GetAllPools {
+    Pool(
+      where: {
+        liquidity: { _gt: "0" }
+        isActive: { _eq: true }
+      }
+      order_by: [{ liquidity: desc }]
+    ) {
+      id
+      chainId
+      address
+      token0
+      token1
+      feeTier
+      tickSpacing
+      liquidity
+      sqrtPriceX96
+      tick
+      isActive
+      volumeToken0
+      volumeToken1
+      txCount
+      totalValueLockedToken0
+      totalValueLockedToken1
+      createdAt
+      createdAtBlock
       lastSwapAt
     }
   }
@@ -145,10 +180,11 @@ export const POOL_RELATED_TRANSFERS_QUERY = gql`
 // ============ Account Queries ============
 
 export const TOP_HOLDERS_QUERY = gql`
-  query GetTopHolders($limit: Int!) {
+  query GetTopHolders($limit: Int!, $offset: Int!) {
     Account(
       order_by: [{ balance: desc }]
       limit: $limit
+      offset: $offset
       where: { balance: { _gt: "0" } }
     ) {
       id
@@ -160,6 +196,15 @@ export const TOP_HOLDERS_QUERY = gql`
       transferCount
       firstTransferAt
       lastTransferAt
+      lastTransferHash
+      lastBuyAt
+      lastBuyHash
+      lastSellAt
+      lastSellHash
+      totalBuys
+      totalSells
+      totalBuyVolume
+      totalSellVolume
     }
   }
 `
@@ -175,10 +220,11 @@ export const ACCOUNT_COUNT_QUERY = gql`
 `
 
 export const MOST_ACTIVE_ACCOUNTS_QUERY = gql`
-  query GetMostActiveAccounts($limit: Int!) {
+  query GetMostActiveAccounts($limit: Int!, $offset: Int!) {
     Account(
       order_by: [{ transferCount: desc }]
       limit: $limit
+      offset: $offset
       where: { balance: { _gt: "0" } }
     ) {
       id
@@ -190,6 +236,15 @@ export const MOST_ACTIVE_ACCOUNTS_QUERY = gql`
       transferCount
       firstTransferAt
       lastTransferAt
+      lastTransferHash
+      lastBuyAt
+      lastBuyHash
+      lastSellAt
+      lastSellHash
+      totalBuys
+      totalSells
+      totalBuyVolume
+      totalSellVolume
     }
   }
 `

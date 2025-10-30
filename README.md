@@ -50,7 +50,7 @@ pnpm start
 
 ## Data Source
 
-Indexer endpoint: `https://indexer.dev.hyperindex.xyz/db4edef/v1/graphql`
+Indexer endpoint: `https://indexer.hyperindex.xyz/1c6c77c/v1/graphql`
 
 Indexer repository: [ping-envio-indexing](https://github.com/kevinslin/ping-envio-indexing)
 

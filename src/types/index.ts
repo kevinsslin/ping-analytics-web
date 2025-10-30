@@ -23,6 +23,15 @@ export interface Account {
   transferCount: string
   firstTransferAt: string
   lastTransferAt: string
+  lastTransferHash: string
+  lastBuyAt?: string | null
+  lastBuyHash?: string | null
+  lastSellAt?: string | null
+  lastSellHash?: string | null
+  totalBuys: string
+  totalSells: string
+  totalBuyVolume: string
+  totalSellVolume: string
 }
 
 export interface Transfer {
@@ -46,15 +55,18 @@ export interface Pool {
   token0: string // Token address
   token1: string // Token address
   feeTier: string
+  tickSpacing: string
   liquidity: string
   sqrtPriceX96: string
   tick: string
+  isActive: boolean
   volumeToken0: string
   volumeToken1: string
   txCount: string
   totalValueLockedToken0: string
   totalValueLockedToken1: string
   createdAt: string
+  createdAtBlock: string
   lastSwapAt: string
 }
 

@@ -11,13 +11,31 @@ import { useState } from 'react'
 
 export function HoldersTab() {
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null)
-  const { accounts, loading, error } = useAccounts(100, 'balance')
+  const {
+    accounts,
+    loading,
+    error,
+    currentPage,
+    totalPages,
+    totalHolders,
+    pageSize,
+    goToPage,
+    nextPage,
+    prevPage
+  } = useAccounts(100, 'balance')
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
     setCopiedAddress(text)
     setTimeout(() => setCopiedAddress(null), 2000)
   }
+
+  const getTransactionUrl = (hash: string) => {
+    return `https://basescan.org/tx/${hash}`
+  }
+
+  const startIndex = (currentPage - 1) * pageSize
+  const endIndex = Math.min(startIndex + pageSize, totalHolders)
 
   if (loading) {
     return <LoadingCard />
@@ -42,10 +60,10 @@ export function HoldersTab() {
         <CardHeader className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b">
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Top {accounts.length} Holders
+            Top Holders
           </CardTitle>
           <CardDescription>
-            Ranked by balance • {accounts.length} total accounts holding {TOKEN_SYMBOL}
+            Ranked by balance • Showing {startIndex + 1}-{endIndex} of {totalHolders} holders
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -54,11 +72,13 @@ export function HoldersTab() {
               <thead className="sticky top-0 bg-muted/50 backdrop-blur-sm z-10">
                 <tr className="border-b">
                   <th className="text-left p-2 md:p-4 font-medium w-12 md:w-16">Rank</th>
-                  <th className="text-left p-2 md:p-4 font-medium w-[35%] md:w-[30%]">Address</th>
-                  <th className="text-right p-2 md:p-4 font-medium w-[25%] md:w-[18%]">Balance</th>
-                  <th className="text-left p-2 md:p-4 font-medium w-[28%] md:w-[20%]">% of Supply</th>
-                  <th className="text-right p-2 md:p-4 font-medium w-[12%] hidden md:table-cell">Transfers</th>
-                  <th className="text-left p-2 md:p-4 font-medium w-[20%] hidden md:table-cell">First Transfer</th>
+                  <th className="text-left p-2 md:p-4 font-medium">Address</th>
+                  <th className="text-right p-2 md:p-4 font-medium">Balance</th>
+                  <th className="text-left p-2 md:p-4 font-medium">% of Supply</th>
+                  <th className="text-right p-2 md:p-4 font-medium hidden md:table-cell">Transfers</th>
+                  <th className="text-left p-2 md:p-4 font-medium hidden lg:table-cell">Last Transfer</th>
+                  <th className="text-left p-2 md:p-4 font-medium hidden lg:table-cell">Last Buy</th>
+                  <th className="text-left p-2 md:p-4 font-medium hidden lg:table-cell">Last Sell</th>
                 </tr>
               </thead>
               <tbody>
@@ -66,6 +86,7 @@ export function HoldersTab() {
                   const balance = parseFloat(account.balance)
                   const percentage = (balance / MAX_TOTAL_SUPPLY) * 100
                   const specialLabel = SPECIAL_ADDRESSES[account.address.toLowerCase()]
+                  const globalRank = startIndex + index + 1
 
                   // Medal emojis for top 3
                   const getRankBadge = (rank: number) => {
@@ -79,11 +100,11 @@ export function HoldersTab() {
                     <tr
                       key={account.id}
                       className={`group border-b hover:bg-muted/50 transition-all ${
-                        index < 3 ? 'bg-primary/5' : ''
+                        globalRank <= 3 ? 'bg-primary/5' : ''
                       } ${specialLabel ? 'bg-blue-500/5' : ''}`}
                     >
                       <td className="p-2 md:p-4 font-bold text-sm md:text-base">
-                        {getRankBadge(index + 1)}
+                        {getRankBadge(globalRank)}
                       </td>
                       <td className="p-2 md:p-4">
                         <div className="space-y-1.5">
@@ -137,14 +158,120 @@ export function HoldersTab() {
                           {account.transferCount}
                         </span>
                       </td>
-                      <td className="p-2 md:p-4 text-muted-foreground text-xs hidden md:table-cell">
-                        {getTimeAgo(account.firstTransferAt)}
+                      <td className="p-2 md:p-4 hidden lg:table-cell">
+                        <a
+                          href={getTransactionUrl(account.lastTransferHash)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          <span>{getTimeAgo(account.lastTransferAt)}</span>
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </td>
+                      <td className="p-2 md:p-4 hidden lg:table-cell">
+                        {account.lastBuyAt && account.lastBuyHash ? (
+                          <a
+                            href={getTransactionUrl(account.lastBuyHash)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+                          >
+                            <span>{getTimeAgo(account.lastBuyAt)}</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        ) : (
+                          <span className="text-xs text-muted-foreground/50">Never</span>
+                        )}
+                      </td>
+                      <td className="p-2 md:p-4 hidden lg:table-cell">
+                        {account.lastSellAt && account.lastSellHash ? (
+                          <a
+                            href={getTransactionUrl(account.lastSellHash)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+                          >
+                            <span>{getTimeAgo(account.lastSellAt)}</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        ) : (
+                          <span className="text-xs text-muted-foreground/50">Never</span>
+                        )}
                       </td>
                     </tr>
                   )
                 })}
               </tbody>
             </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Pagination Controls */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-sm text-muted-foreground">
+              Showing {startIndex + 1}-{endIndex} of {totalHolders} holders
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={prevPage}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                  let pageNum
+                  if (totalPages <= 5) {
+                    pageNum = i + 1
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i
+                  } else {
+                    pageNum = currentPage - 2 + i
+                  }
+
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => goToPage(pageNum)}
+                      className="w-10"
+                    >
+                      {pageNum}
+                    </Button>
+                  )
+                })}
+                {totalPages > 5 && currentPage < totalPages - 2 && (
+                  <>
+                    <span className="text-muted-foreground px-2">...</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goToPage(totalPages)}
+                      className="w-10"
+                    >
+                      {totalPages}
+                    </Button>
+                  </>
+                )}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={nextPage}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -1,6 +1,6 @@
 import { GraphQLClient } from 'graphql-request'
 
-const GRAPHQL_ENDPOINT = 'https://indexer.dev.hyperindex.xyz/db4edef/v1/graphql'
+const GRAPHQL_ENDPOINT = 'https://indexer.hyperindex.xyz/1c6c77c/v1/graphql'
 
 export const graphqlClient = new GraphQLClient(GRAPHQL_ENDPOINT, {
   headers: {
