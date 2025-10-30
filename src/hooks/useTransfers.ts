@@ -5,7 +5,7 @@ import { fetchGraphQL } from '@/lib/graphql'
 import { RECENT_TRANSFERS_QUERY, POOL_RELATED_TRANSFERS_QUERY, TRANSFER_COUNT_QUERY, RECENT_TRANSFERS_AFTER_TIMESTAMP_QUERY } from '@/lib/queries'
 import { Transfer, TransferQueryResponse } from '@/types'
 
-const MAX_TRANSFERS = 50 // Maximum number of transfers to keep in memory for live updates
+const MAX_TRANSFERS = 100 // Maximum number of transfers to keep in memory for live updates
 
 export function useTransfers(
   pageSize = 100,

@@ -92,7 +92,7 @@ export function PoolsTab() {
       </CardHeader>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-max">
             <thead>
               <tr className="border-b bg-muted/50">
                 <th className="text-left p-3 font-medium text-xs">Pool</th>

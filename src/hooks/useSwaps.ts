@@ -5,7 +5,7 @@ import { fetchGraphQL } from '@/lib/graphql'
 import { RECENT_SWAPS_QUERY, RECENT_SWAPS_AFTER_TIMESTAMP_QUERY } from '@/lib/queries'
 import { Swap, SwapQueryResponse } from '@/types'
 
-const MAX_SWAPS = 50 // Maximum number of swaps to keep in memory
+const MAX_SWAPS = 100 // Maximum number of swaps to keep in memory
 
 export function useSwaps(limit = 25, pollInterval: number | null = null) {
   const [swaps, setSwaps] = useState<Swap[]>([])

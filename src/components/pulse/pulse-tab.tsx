@@ -37,9 +37,9 @@ function formatSwapAmount(amount: number): string {
 }
 
 export function PulseTab() {
-  const DISPLAY_LIMIT = 15 // Show 15 items instead of 3
-  const { swaps, loading: swapsLoading } = useSwaps(25, 2000) // Poll every 2 seconds - incremental fetch
-  const { transfers, loading: transfersLoading } = useTransfers(25, null, 2000) // Poll every 2 seconds - incremental fetch
+  const DISPLAY_LIMIT = 100 // Show 100 items - display all activity
+  const { swaps, loading: swapsLoading } = useSwaps(100, 1000) // Poll every 1 second - incremental fetch
+  const { transfers, loading: transfersLoading } = useTransfers(100, null, 1000) // Poll every 1 second - incremental fetch
   const [copiedHash, setCopiedHash] = useState<string | null>(null)
   const [newSwapIds, setNewSwapIds] = useState<Set<string>>(new Set()) // Track new item IDs
   const [newTransferIds, setNewTransferIds] = useState<Set<string>>(new Set())
@@ -185,7 +185,7 @@ export function PulseTab() {
             </div>
           </div>
           <CardDescription className="text-xs sm:text-sm">
-            Real-time transfer activity • Updates every 2s
+            Real-time transfer activity • Updates every 1s
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -353,7 +353,7 @@ export function PulseTab() {
             </div>
           </div>
           <CardDescription className="text-xs sm:text-sm">
-            Real-time swap activity • Updates every 2s
+            Real-time swap activity • Updates every 1s
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
