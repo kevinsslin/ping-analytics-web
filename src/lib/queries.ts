@@ -124,10 +124,11 @@ export const RECENT_SWAPS_QUERY = gql`
 `
 
 export const RECENT_SWAPS_AFTER_TIMESTAMP_QUERY = gql`
-  query GetRecentSwapsAfterTimestamp($afterTimestamp: String!) {
+  query GetRecentSwapsAfterTimestamp($afterTimestamp: Int!) {
     Swap(
       where: { timestamp: { _gt: $afterTimestamp } }
       order_by: [{ timestamp: desc }]
+      limit: 100
     ) {
       id
       chainId
@@ -236,10 +237,11 @@ export const TRANSFER_COUNT_QUERY = gql`
 `
 
 export const RECENT_TRANSFERS_AFTER_TIMESTAMP_QUERY = gql`
-  query GetRecentTransfersAfterTimestamp($afterTimestamp: String!) {
+  query GetRecentTransfersAfterTimestamp($afterTimestamp: Int!) {
     Transfer(
       where: { timestamp: { _gt: $afterTimestamp } }
       order_by: [{ timestamp: desc }]
+      limit: 100
     ) {
       id
       chainId

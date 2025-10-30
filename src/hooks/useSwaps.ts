@@ -11,7 +11,7 @@ export function useSwaps(limit = 25, pollInterval: number | null = null) {
   const [swaps, setSwaps] = useState<Swap[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const latestTimestampRef = useRef<string | null>(null)
+  const latestTimestampRef = useRef<number | null>(null)
   const isInitialFetchRef = useRef(true)
 
   const fetchSwaps = useCallback(async () => {
@@ -25,8 +25,8 @@ export function useSwaps(limit = 25, pollInterval: number | null = null) {
 
         if (data.Swap && data.Swap.length > 0) {
           setSwaps(data.Swap)
-          // Store the latest timestamp
-          latestTimestampRef.current = data.Swap[0].timestamp
+          // Store the latest timestamp as integer for numeric comparison
+          latestTimestampRef.current = parseInt(data.Swap[0].timestamp)
           setError(null)
         }
         setLoading(false)
@@ -47,8 +47,8 @@ export function useSwaps(limit = 25, pollInterval: number | null = null) {
             // Limit to MAX_SWAPS items
             return combined.slice(0, MAX_SWAPS)
           })
-          // Update latest timestamp to the newest swap
-          latestTimestampRef.current = data.Swap[0].timestamp
+          // Update latest timestamp to the newest swap as integer
+          latestTimestampRef.current = parseInt(data.Swap[0].timestamp)
           setError(null)
         }
       }

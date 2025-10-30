@@ -47,6 +47,16 @@ export function PulseTab() {
   const prevTransfersRef = useRef<string[]>([])
   const [tokenNames, setTokenNames] = useState<Record<string, string>>({})
   const [fetchingTokens, setFetchingTokens] = useState(false)
+  const [, setCurrentTime] = useState(Date.now()) // Force re-renders for timestamp updates
+
+  // Timer to update timestamps every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(Date.now())
+    }, 1000) // Update every second
+
+    return () => clearInterval(timer)
+  }, [])
 
   // Track new swaps with TRUE staggered animation (one-by-one)
   useEffect(() => {

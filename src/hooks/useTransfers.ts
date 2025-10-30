@@ -17,7 +17,7 @@ export function useTransfers(
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalTransfers, setTotalTransfers] = useState(0)
-  const latestTimestampRef = useRef<string | null>(null)
+  const latestTimestampRef = useRef<number | null>(null)
   const isInitialFetchRef = useRef(true)
   const useLiveUpdates = pollInterval !== null && currentPage === 1 && filterPoolRelated === null
 
@@ -49,8 +49,8 @@ export function useTransfers(
 
           if (data.Transfer && data.Transfer.length > 0) {
             setTransfers(data.Transfer)
-            // Store the latest timestamp
-            latestTimestampRef.current = data.Transfer[0].timestamp
+            // Store the latest timestamp as integer for numeric comparison
+            latestTimestampRef.current = parseInt(data.Transfer[0].timestamp)
             setError(null)
           }
           setLoading(false)
@@ -71,8 +71,8 @@ export function useTransfers(
               // Limit to MAX_TRANSFERS items
               return combined.slice(0, MAX_TRANSFERS)
             })
-            // Update latest timestamp to the newest transfer
-            latestTimestampRef.current = data.Transfer[0].timestamp
+            // Update latest timestamp to the newest transfer as integer
+            latestTimestampRef.current = parseInt(data.Transfer[0].timestamp)
             setError(null)
           }
         }
