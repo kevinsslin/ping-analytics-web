@@ -87,7 +87,7 @@ export function PoolsTab() {
           Active Pools
         </CardTitle>
         <CardDescription>
-          All pools with active liquidity • {pools.length} pool{pools.length !== 1 ? 's' : ''} found
+          All pools with active liquidity • {pools.length} pool{pools.length !== 1 ? 's' : ''} found • Sorted by PING volume ↓
         </CardDescription>
       </CardHeader>
       <CardContent className="p-0">
@@ -171,14 +171,20 @@ export function PoolsTab() {
                         {volumeToken0 === 0 ? (
                           <span className="text-muted-foreground/50 text-xs">No trades</span>
                         ) : (
-                          `$${formatTokenAmount(volumeToken0, 1)}`
+                          <div className="flex flex-col items-end">
+                            <span>${formatTokenAmount(volumeToken0, 1)}</span>
+                            <span className="text-[10px] text-muted-foreground">({token0Symbol})</span>
+                          </div>
                         )}
                       </td>
                       <td className="p-3 text-right font-mono text-xs">
                         {volumeToken1 === 0 ? (
                           <span className="text-muted-foreground/50 text-xs">No trades</span>
                         ) : (
-                          formatTokenAmount(volumeToken1, 0)
+                          <div className="flex flex-col items-end">
+                            <span>{formatTokenAmount(volumeToken1, 0)}</span>
+                            <span className="text-[10px] text-muted-foreground">({token1Symbol})</span>
+                          </div>
                         )}
                       </td>
                       <td className="p-3 text-right font-mono text-xs text-muted-foreground">
