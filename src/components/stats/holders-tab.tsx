@@ -37,7 +37,10 @@ export function HoldersTab() {
   }
 
   const startIndex = (currentPage - 1) * currentPageSize
-  const endIndex = Math.min(startIndex + currentPageSize, totalHolders)
+  // Smart endIndex: use totalHolders if available, otherwise calculate from actual loaded accounts
+  const endIndex = totalHolders > 0
+    ? Math.min(startIndex + currentPageSize, totalHolders)
+    : startIndex + accounts.length
 
   const handlePageSizeChange = (newSize: number) => {
     console.log('[HoldersTab] handlePageSizeChange called:', {
@@ -100,7 +103,11 @@ export function HoldersTab() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
               <div className="text-sm text-muted-foreground">
                 {accounts.length > 0 ? (
-                  <>Showing {startIndex + 1}-{endIndex} of {totalHolders} holders</>
+                  totalHolders > 0 ? (
+                    <>Showing {startIndex + 1}-{endIndex} of {totalHolders} holders</>
+                  ) : (
+                    <>Showing {startIndex + 1}-{endIndex}</>
+                  )
                 ) : (
                   <>No holders on this page</>
                 )}
