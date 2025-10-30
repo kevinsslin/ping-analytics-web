@@ -61,6 +61,11 @@ export function HoldersTab() {
     )
   }
 
+  // Guard against invalid currentPage (should never happen with fixes, but defensive programming)
+  if (currentPage < 1) {
+    return <LoadingCard />
+  }
+
   return (
     <div className="space-y-4">
       {/* Pagination and Page Size Controls */}

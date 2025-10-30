@@ -89,19 +89,21 @@ export function useAccounts(
   }, [fetchAccounts, currentPage, pollInterval])
 
   const goToPage = useCallback((page: number) => {
-    const validPage = Math.max(1, Math.min(page, Math.ceil(totalHolders / pageSize) || 1))
+    const maxPage = Math.max(1, Math.ceil(totalHolders / pageSize))
+    const validPage = Math.max(1, Math.min(page, maxPage))
     setCurrentPage(validPage)
   }, [totalHolders, pageSize])
 
   const nextPage = useCallback(() => {
-    setCurrentPage(prev => Math.min(prev + 1, Math.ceil(totalHolders / pageSize)))
+    const maxPage = Math.max(1, Math.ceil(totalHolders / pageSize))
+    setCurrentPage(prev => Math.min(prev + 1, maxPage))
   }, [totalHolders, pageSize])
 
   const prevPage = useCallback(() => {
     setCurrentPage(prev => Math.max(prev - 1, 1))
   }, [])
 
-  const totalPages = Math.ceil(totalHolders / pageSize)
+  const totalPages = Math.max(1, Math.ceil(totalHolders / pageSize))
 
   return {
     accounts,
