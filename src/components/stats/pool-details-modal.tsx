@@ -3,10 +3,13 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { LoadingCard } from '@/components/shared/loading'
-import { formatTokenAmount, formatNumber, shortenAddress } from '@/lib/utils'
+import { formatTokenAmount, formatNumber, shortenAddress, fetchTokenInfo } from '@/lib/utils'
 import { BarChart3, TrendingUp, Droplets, X } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { usePoolActivity } from '@/hooks/usePoolActivity'
+import { fetchGraphQL } from '@/lib/graphql'
+import { POOL_BY_ADDRESS_QUERY } from '@/lib/queries'
+import { TOKEN_ADDRESS, USDC_ADDRESS } from '@/types'
 
 interface PoolDetailsModalProps {
   poolAddress: string | null
@@ -16,6 +19,47 @@ interface PoolDetailsModalProps {
 export function PoolDetailsModal({ poolAddress, onClose }: PoolDetailsModalProps) {
   // Fetch pool activity data (must be called before any early returns)
   const { activities, loading, error } = usePoolActivity(poolAddress, 30, null)
+  const [tokenSymbols, setTokenSymbols] = useState<{ token0: string; token1: string }>({ token0: 'Token0', token1: 'Token1' })
+
+  // Fetch pool data and resolve token symbols
+  useEffect(() => {
+    if (!poolAddress) return
+
+    const fetchPoolData = async () => {
+      try {
+        // Normalize address to lowercase for query
+        const normalizedAddress = poolAddress.toLowerCase()
+        const data = await fetchGraphQL<{ Pool: Array<{ token0: string; token1: string }> }>(
+          POOL_BY_ADDRESS_QUERY,
+          { address: normalizedAddress }
+        )
+
+        if (data.Pool && data.Pool.length > 0) {
+          const pool = data.Pool[0]
+
+          // Resolve token symbols
+          const getTokenSymbol = async (address: string) => {
+            const addr = address.toLowerCase()
+            if (addr === TOKEN_ADDRESS.toLowerCase()) return 'PING'
+            if (addr === USDC_ADDRESS.toLowerCase()) return 'USDC'
+            const info = await fetchTokenInfo(address)
+            return info?.symbol || shortenAddress(address)
+          }
+
+          const [token0Symbol, token1Symbol] = await Promise.all([
+            getTokenSymbol(pool.token0),
+            getTokenSymbol(pool.token1)
+          ])
+
+          setTokenSymbols({ token0: token0Symbol, token1: token1Symbol })
+        }
+      } catch (err) {
+        console.error('Error fetching pool data:', err)
+      }
+    }
+
+    fetchPoolData()
+  }, [poolAddress])
 
   // Close on Escape key
   useEffect(() => {
@@ -142,8 +186,8 @@ export function PoolDetailsModal({ poolAddress, onClose }: PoolDetailsModalProps
                           <thead className="sticky top-0 bg-muted/50 backdrop-blur-sm">
                             <tr className="border-b">
                               <th className="text-left p-2 font-medium">Date</th>
-                              <th className="text-right p-2 font-medium">Token0 Volume</th>
-                              <th className="text-right p-2 font-medium">Token1 Volume</th>
+                              <th className="text-right p-2 font-medium">{tokenSymbols.token0} Volume</th>
+                              <th className="text-right p-2 font-medium">{tokenSymbols.token1} Volume</th>
                             </tr>
                           </thead>
                           <tbody>

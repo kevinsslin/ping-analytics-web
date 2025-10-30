@@ -216,14 +216,14 @@ export function TransfersTab() {
                 {transfers
                   .filter(transfer => {
                     // Comprehensive validation - ensure all required data exists
-                    if (!transfer || !transfer.from || !transfer.to) return false
-                    if (!transfer.from.address || !transfer.to.address) return false
+                    if (!transfer) return false
                     if (!transfer.transactionHash || !transfer.value) return false
 
                     // Validate value is a parseable number
                     const val = parseFloat(transfer.value)
                     if (isNaN(val) || !isFinite(val)) return false
 
+                    // Note: from/to can be null for pool-related transfers (mints/burns)
                     return true
                   })
                   .map((transfer, index) => {
@@ -253,24 +253,32 @@ export function TransfersTab() {
                         {getTimeAgo(transfer.timestamp)}
                       </td>
                       <td className="p-4">
-                        <a
-                          href={getBlockExplorerAddressUrl(transfer.from.address)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-mono text-xs hover:text-primary transition-colors"
-                        >
-                          {shortenAddress(transfer.from.address)}
-                        </a>
+                        {transfer.from && transfer.from.address ? (
+                          <a
+                            href={getBlockExplorerAddressUrl(transfer.from.address)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-mono text-xs hover:text-primary transition-colors"
+                          >
+                            {shortenAddress(transfer.from.address)}
+                          </a>
+                        ) : (
+                          <span className="font-mono text-xs text-muted-foreground/50">Pool (Mint)</span>
+                        )}
                       </td>
                       <td className="p-4">
-                        <a
-                          href={getBlockExplorerAddressUrl(transfer.to.address)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-mono text-xs hover:text-primary transition-colors"
-                        >
-                          {shortenAddress(transfer.to.address)}
-                        </a>
+                        {transfer.to && transfer.to.address ? (
+                          <a
+                            href={getBlockExplorerAddressUrl(transfer.to.address)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-mono text-xs hover:text-primary transition-colors"
+                          >
+                            {shortenAddress(transfer.to.address)}
+                          </a>
+                        ) : (
+                          <span className="font-mono text-xs text-muted-foreground/50">Pool (Burn)</span>
+                        )}
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex flex-col items-end">

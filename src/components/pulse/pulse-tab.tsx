@@ -38,8 +38,8 @@ function formatSwapAmount(amount: number): string {
 
 export function PulseTab() {
   const DISPLAY_LIMIT = 15 // Show 15 items instead of 3
-  const { swaps, loading: swapsLoading } = useSwaps(25, 2000)
-  const { transfers, loading: transfersLoading } = useTransfers(25, null, 2000)
+  const { swaps, loading: swapsLoading } = useSwaps(25, null) // Disabled auto-refresh
+  const { transfers, loading: transfersLoading } = useTransfers(25, null, null) // Disabled auto-refresh
   const [copiedHash, setCopiedHash] = useState<string | null>(null)
   const [newSwapIds, setNewSwapIds] = useState<Set<string>>(new Set()) // Track new item IDs
   const [newTransferIds, setNewTransferIds] = useState<Set<string>>(new Set())

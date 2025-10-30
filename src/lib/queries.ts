@@ -47,6 +47,19 @@ export const POOL_QUERY = gql`
   }
 `
 
+export const POOL_BY_ADDRESS_QUERY = gql`
+  query GetPoolByAddress($address: String!) {
+    Pool(where: { address: { _eq: $address } }) {
+      id
+      chainId
+      address
+      token0
+      token1
+      feeTier
+    }
+  }
+`
+
 export const ALL_POOLS_QUERY = gql`
   query GetAllPools {
     Pool(

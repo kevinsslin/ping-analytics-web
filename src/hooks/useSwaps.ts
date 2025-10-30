@@ -5,7 +5,7 @@ import { fetchGraphQL } from '@/lib/graphql'
 import { RECENT_SWAPS_QUERY } from '@/lib/queries'
 import { Swap, SwapQueryResponse } from '@/types'
 
-export function useSwaps(limit = 25, pollInterval = 2000) {
+export function useSwaps(limit = 25, pollInterval: number | null = null) {
   const [swaps, setSwaps] = useState<Swap[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -32,23 +32,26 @@ export function useSwaps(limit = 25, pollInterval = 2000) {
   useEffect(() => {
     fetchSwaps()
 
-    const interval = setInterval(() => {
-      if (!document.hidden) {
-        fetchSwaps()
+    // Only set up polling if pollInterval is provided
+    if (pollInterval !== null) {
+      const interval = setInterval(() => {
+        if (!document.hidden) {
+          fetchSwaps()
+        }
+      }, pollInterval)
+
+      const handleVisibilityChange = () => {
+        if (!document.hidden) {
+          fetchSwaps()
+        }
       }
-    }, pollInterval)
 
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        fetchSwaps()
+      document.addEventListener('visibilitychange', handleVisibilityChange)
+
+      return () => {
+        clearInterval(interval)
+        document.removeEventListener('visibilitychange', handleVisibilityChange)
       }
-    }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-
-    return () => {
-      clearInterval(interval)
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [fetchSwaps, pollInterval])
 

@@ -175,7 +175,7 @@ export function HoldersTab() {
       </Card>
 
       {/* Holders Table */}
-      <Card className="overflow-hidden">
+      <Card>
         <CardHeader className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b">
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
@@ -186,7 +186,7 @@ export function HoldersTab() {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="relative overflow-x-auto">
+          <div className="relative overflow-x-auto w-full">
             <table className="w-full text-sm table-fixed">
               <thead className="sticky top-0 bg-muted/50 backdrop-blur-sm z-10">
                 <tr className="border-b">
