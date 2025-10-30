@@ -111,9 +111,8 @@ export function useAccounts(
   }, [totalHolders, pageSize])
 
   const nextPage = useCallback(() => {
-    const maxPage = Math.max(1, Math.ceil(totalHolders / pageSize))
-    setCurrentPage(prev => Math.min(prev + 1, maxPage))
-  }, [totalHolders, pageSize])
+    setCurrentPage(prev => prev + 1)
+  }, [])
 
   const prevPage = useCallback(() => {
     setCurrentPage(prev => Math.max(prev - 1, 1))

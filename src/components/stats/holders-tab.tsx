@@ -99,7 +99,11 @@ export function HoldersTab() {
             {/* Right side - Page navigation */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
               <div className="text-sm text-muted-foreground">
-                Showing {startIndex + 1}-{endIndex} of {totalHolders} holders
+                {accounts.length > 0 ? (
+                  <>Showing {startIndex + 1}-{endIndex} of {totalHolders} holders</>
+                ) : (
+                  <>No holders on this page</>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <Button
@@ -153,7 +157,7 @@ export function HoldersTab() {
                   variant="outline"
                   size="sm"
                   onClick={nextPage}
-                  disabled={currentPage === totalPages}
+                  disabled={false}
                 >
                   Next
                 </Button>

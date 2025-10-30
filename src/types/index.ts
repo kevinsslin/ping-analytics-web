@@ -77,7 +77,7 @@ export interface Swap {
   timestamp: string
   blockNumber: string
   logIndex: string
-  pool: Pool
+  pool: Pool | null // Pool can be null if deleted or join fails
   sender: string
   recipient: string
   amount0: string // Can be negative in V3

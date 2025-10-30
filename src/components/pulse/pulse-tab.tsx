@@ -12,17 +12,28 @@ import { useState, useEffect, useRef } from 'react'
 
 // Helper function to get token symbol from address
 function getTokenSymbol(address: string | undefined, tokenNames: Record<string, string>): string {
-  if (!address) return '?'
-  const addr = address.toLowerCase()
-  if (addr === TOKEN_ADDRESS.toLowerCase()) return 'PING'
-  if (addr === USDC_ADDRESS.toLowerCase()) return 'USDC'
-  return tokenNames[addr] || shortenAddress(address)
+  if (!address || typeof address !== 'string') return '?'
+  try {
+    const addr = address.toLowerCase()
+    if (addr === TOKEN_ADDRESS.toLowerCase()) return 'PING'
+    if (addr === USDC_ADDRESS.toLowerCase()) return 'USDC'
+    return tokenNames[addr] || shortenAddress(address)
+  } catch (error) {
+    console.error('Error in getTokenSymbol:', error)
+    return '?'
+  }
 }
 
 // Helper function to format fee tier as percentage
 function formatFeeTier(feeTier: string): string {
   const feeValue = parseFloat(feeTier) / 10000
   return `${feeValue.toFixed(2)}%`
+}
+
+// Helper function to safely format swap amounts
+function formatSwapAmount(amount: number): string {
+  if (!isFinite(amount) || isNaN(amount)) return '0.00'
+  return Math.abs(amount).toFixed(2)
 }
 
 export function PulseTab() {
@@ -117,15 +128,23 @@ export function PulseTab() {
       setFetchingTokens(true)
       Promise.all(
         Array.from(unknownTokens).map(async (address) => {
-          const info = await fetchTokenInfo(address)
-          return [address.toLowerCase(), info?.symbol || shortenAddress(address)]
+          try {
+            const info = await fetchTokenInfo(address)
+            return [address.toLowerCase(), info?.symbol || shortenAddress(address)]
+          } catch (error) {
+            console.error(`Failed to fetch token info for ${address}:`, error)
+            return [address.toLowerCase(), shortenAddress(address)]
+          }
         })
       ).then((results) => {
         const names: Record<string, string> = {}
         results.forEach(([address, symbol]) => {
           names[address as string] = symbol as string
         })
-        setTokenNames(names)
+        setTokenNames(prev => ({ ...prev, ...names }))
+      }).catch((error) => {
+        console.error('Failed to fetch token names:', error)
+      }).finally(() => {
         setFetchingTokens(false)
       })
     }
@@ -318,7 +337,19 @@ export function PulseTab() {
           ) : (
             <div className="max-h-[400px] sm:max-h-[600px] overflow-y-auto">
               {swaps
-                .filter(swap => swap.pool && swap.pool.token0 && swap.pool.token1 && swap.pool.feeTier)
+                .filter(swap => {
+                  // Comprehensive validation - ensure all required data exists and is valid
+                  if (!swap || !swap.pool) return false
+                  if (!swap.pool.token0 || !swap.pool.token1 || !swap.pool.feeTier) return false
+                  if (!swap.amount0 || !swap.amount1) return false
+
+                  // Validate amounts are parseable numbers
+                  const amt0 = parseFloat(swap.amount0)
+                  const amt1 = parseFloat(swap.amount1)
+                  if (isNaN(amt0) || isNaN(amt1) || !isFinite(amt0) || !isFinite(amt1)) return false
+
+                  return true
+                })
                 .slice(0, DISPLAY_LIMIT)
                 .map((swap, index) => {
                 const amount1 = parseFloat(swap.amount1)
@@ -390,23 +421,23 @@ export function PulseTab() {
                       {isPingToken0 ? (
                         <>
                           <span className="text-base sm:text-lg font-bold font-mono">
-                            {Math.abs(amount0).toFixed(2)}
+                            {formatSwapAmount(amount0)}
                           </span>
                           <span className="text-xs sm:text-sm text-muted-foreground">{TOKEN_SYMBOL}</span>
                           <span className="text-xs text-muted-foreground">for</span>
                           <span className="text-xs sm:text-sm font-mono text-muted-foreground">
-                            {Math.abs(amount1).toFixed(2)} {token1Symbol}
+                            {formatSwapAmount(amount1)} {token1Symbol}
                           </span>
                         </>
                       ) : (
                         <>
                           <span className="text-base sm:text-lg font-bold font-mono">
-                            {Math.abs(amount1).toFixed(2)}
+                            {formatSwapAmount(amount1)}
                           </span>
                           <span className="text-xs sm:text-sm text-muted-foreground">{TOKEN_SYMBOL}</span>
                           <span className="text-xs text-muted-foreground">for</span>
                           <span className="text-xs sm:text-sm font-mono text-muted-foreground">
-                            {Math.abs(amount0).toFixed(2)} {token0Symbol}
+                            {formatSwapAmount(amount0)} {token0Symbol}
                           </span>
                         </>
                       )}
