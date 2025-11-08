@@ -76,6 +76,12 @@ export const ALL_POOLS_QUERY = gql`
       token1
       feeTier
       tickSpacing
+      token0Symbol
+      token0Name
+      token0Decimals
+      token1Symbol
+      token1Name
+      token1Decimals
       liquidity
       sqrtPriceX96
       tick
@@ -394,6 +400,149 @@ export const DAILY_POOL_ACTIVITY_QUERY = gql`
       liquidityEnd
       sqrtPriceX96Start
       sqrtPriceX96End
+    }
+  }
+`
+
+// ============ V4 Pool Queries ============
+
+export const POOLV4_QUERY = gql`
+  query GetPoolV4($poolId: String!) {
+    PoolV4(where: { id: { _eq: $poolId } }) {
+      id
+      chainId
+      poolId
+      currency0
+      currency1
+      fee
+      hooks
+      tickSpacing
+      liquidity
+      sqrtPriceX96
+      tick
+      isActive
+      currency0Symbol
+      currency0Name
+      currency0Decimals
+      currency1Symbol
+      currency1Name
+      currency1Decimals
+      volumeCurrency0
+      volumeCurrency1
+      txCount
+      totalValueLockedCurrency0
+      totalValueLockedCurrency1
+      createdAt
+      createdAtBlock
+      lastSwapAt
+    }
+  }
+`
+
+export const ALL_POOLSV4_QUERY = gql`
+  query GetAllPoolsV4 {
+    PoolV4(
+      where: {
+        liquidity: { _gt: "0" }
+        isActive: { _eq: true }
+      }
+      order_by: [{ liquidity: desc }]
+    ) {
+      id
+      chainId
+      poolId
+      currency0
+      currency1
+      fee
+      hooks
+      tickSpacing
+      liquidity
+      sqrtPriceX96
+      tick
+      isActive
+      currency0Symbol
+      currency0Name
+      currency0Decimals
+      currency1Symbol
+      currency1Name
+      currency1Decimals
+      volumeCurrency0
+      volumeCurrency1
+      txCount
+      totalValueLockedCurrency0
+      totalValueLockedCurrency1
+      createdAt
+      createdAtBlock
+      lastSwapAt
+    }
+  }
+`
+
+// ============ V4 Swap Queries ============
+
+export const RECENT_SWAPSV4_QUERY = gql`
+  query GetRecentSwapsV4($limit: Int!) {
+    SwapV4(
+      order_by: [{ timestamp: desc }]
+      limit: $limit
+    ) {
+      id
+      chainId
+      transactionHash
+      timestamp
+      blockNumber
+      poolId
+      sender
+      amount0
+      amount1
+      sqrtPriceX96
+      liquidity
+      tick
+      swapFee
+      pool {
+        id
+        poolId
+        currency0
+        currency1
+        currency0Symbol
+        currency1Symbol
+        fee
+        hooks
+      }
+    }
+  }
+`
+
+export const RECENT_SWAPSV4_AFTER_TIMESTAMP_QUERY = gql`
+  query GetRecentSwapsV4AfterTimestamp($afterTimestamp: Int!) {
+    SwapV4(
+      where: { timestamp: { _gt: $afterTimestamp } }
+      order_by: [{ timestamp: desc }]
+      limit: 100
+    ) {
+      id
+      chainId
+      transactionHash
+      timestamp
+      blockNumber
+      poolId
+      sender
+      amount0
+      amount1
+      sqrtPriceX96
+      liquidity
+      tick
+      swapFee
+      pool {
+        id
+        poolId
+        currency0
+        currency1
+        currency0Symbol
+        currency1Symbol
+        fee
+        hooks
+      }
     }
   }
 `

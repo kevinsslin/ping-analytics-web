@@ -56,6 +56,12 @@ export interface Pool {
   token1: string // Token address
   feeTier: string
   tickSpacing: string
+  token0Symbol: string
+  token0Name: string
+  token0Decimals: string
+  token1Symbol: string
+  token1Name: string
+  token1Decimals: string
   liquidity: string
   sqrtPriceX96: string
   tick: string
@@ -85,6 +91,74 @@ export interface Swap {
   sqrtPriceX96: string
   liquidity: string
   tick: string
+}
+
+// ============ V4 Entities ============
+
+export interface PoolV4 {
+  id: string // chainId_poolId
+  chainId: string
+  poolId: string // bytes32 hash
+  currency0: string // Currency address (can be native ETH)
+  currency1: string // Currency address
+  fee: string // Dynamic LP fee in hundredths of bps
+  hooks: string // Hooks contract address
+  tickSpacing: string
+  liquidity: string
+  sqrtPriceX96: string
+  tick: string
+  isActive: boolean
+  currency0Symbol: string
+  currency0Name: string
+  currency0Decimals: string
+  currency1Symbol: string
+  currency1Name: string
+  currency1Decimals: string
+  volumeCurrency0: string
+  volumeCurrency1: string
+  txCount: string
+  totalValueLockedCurrency0: string
+  totalValueLockedCurrency1: string
+  createdAt: string
+  createdAtBlock: string
+  lastSwapAt: string
+}
+
+export interface SwapV4 {
+  id: string // chainId_blockNumber_logIndex
+  chainId: string
+  transactionHash: string
+  timestamp: string
+  blockNumber: string
+  logIndex: string
+  poolId: string // Direct poolId reference
+  pool: PoolV4 | null
+  sender: string
+  amount0: string
+  amount1: string
+  sqrtPriceX96: string
+  liquidity: string
+  tick: string
+  swapFee: string // Dynamic fee for this specific swap
+}
+
+export interface ModifyLiquidityV4 {
+  id: string
+  chainId: string
+  transactionHash: string
+  timestamp: string
+  blockNumber: string
+  logIndex: string
+  poolId: string
+  pool: PoolV4 | null
+  sender: string
+  liquidityDelta: string // Signed integer (positive for add, negative for remove)
+  amount0: string
+  amount1: string
+  modificationType: string // "ADD" or "REMOVE"
+  salt: string
+  tickLower: string
+  tickUpper: string
 }
 
 export interface DailyTokenActivity {
@@ -118,7 +192,7 @@ export interface DailyPoolActivity {
 export const CHAIN_ID = "8453" // Base
 export const CHAIN_NAME = "Base"
 
-export const POOL_ADDRESS = "0xBc51DB8aEC659027AE0B0E468C0735418161A780" // PING-USDC
+export const POOL_ADDRESS = "0xBc51DB8aEC659027AE0B0E468C0735418161A780" // PING-USDC V3
 export const TOKEN_ADDRESS = "0xd85c31854c2B0Fb40aaA9E2Fc4Da23C21f829d46" // PING
 export const TOKEN_SYMBOL = "PING"
 export const TOKEN_NAME = "Ping"
@@ -128,6 +202,10 @@ export const USDC_SYMBOL = "USDC"
 export const USDC_DECIMALS = 6
 
 export const PING_DECIMALS = 18
+
+// Uniswap Contract Addresses
+export const UNISWAP_V3_FACTORY = "0x33128a8fC17869897dcE68Ed026d694621f6FDfD"
+export const UNISWAP_V4_POOL_MANAGER = "0x498581fF718922c3f8e6A244956aF099B2652b2b"
 
 // Max Total Supply (hard-coded since indexer doesn't track it)
 export const MAX_TOTAL_SUPPLY = 1000000000 // 1 billion PING
@@ -214,4 +292,61 @@ export interface DailyTokenActivityQueryResponse {
 
 export interface DailyPoolActivityQueryResponse {
   DailyPoolActivity: DailyPoolActivity[]
+}
+
+export interface PoolV4QueryResponse {
+  PoolV4: PoolV4[]
+}
+
+export interface SwapV4QueryResponse {
+  SwapV4: SwapV4[]
+}
+
+export interface ModifyLiquidityV4QueryResponse {
+  ModifyLiquidityV4: ModifyLiquidityV4[]
+}
+
+// ============ Unified Display Types ============
+
+export type PoolVersion = 'v3' | 'v4'
+
+// Unified pool type for display purposes
+export interface UnifiedPool {
+  version: PoolVersion
+  id: string
+  identifier: string // address for V3, poolId for V4
+  asset0Address: string
+  asset1Address: string
+  asset0Symbol: string
+  asset1Symbol: string
+  asset0Name: string
+  asset1Name: string
+  asset0Decimals: string
+  asset1Decimals: string
+  fee: string // feeTier for V3, fee for V4
+  liquidity: string
+  volume0: string
+  volume1: string
+  tvl0: string
+  tvl1: string
+  txCount: string
+  lastSwapAt: string
+  hooks?: string // Only for V4
+  isActive: boolean
+}
+
+// Unified swap type for display purposes
+export interface UnifiedSwap {
+  version: PoolVersion
+  id: string
+  chainId: string
+  transactionHash: string
+  timestamp: string
+  blockNumber: string
+  poolIdentifier: string // address for V3, poolId for V4
+  sender: string
+  recipient?: string // Only V3 has separate recipient
+  amount0: string
+  amount1: string
+  swapFee?: string // Only V4 has dynamic fee
 }

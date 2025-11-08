@@ -189,3 +189,137 @@ function decodeString(hex: string): string {
     return ''
   }
 }
+
+// ============ V4 Utilities ============
+
+import type { Pool, PoolV4, PoolVersion, UnifiedPool, Swap, SwapV4, UnifiedSwap } from '@/types'
+import { UNISWAP_V4_POOL_MANAGER } from '@/types'
+
+// Format fee display based on version
+export function formatFeeTier(fee: string, version: PoolVersion): string {
+  const feeNum = parseFloat(fee)
+
+  if (version === 'v3') {
+    // V3 uses basis points: 500 = 0.05%, 3000 = 0.3%, 10000 = 1%
+    return `${(feeNum / 10000).toFixed(2)}%`
+  } else {
+    // V4 uses hundredths of bps: fee is in hundredths of basis points
+    // Max is 1,000,000 = 100%
+    return `${(feeNum / 10000).toFixed(4)}%`
+  }
+}
+
+// Check if hooks address is meaningful (not zero address)
+export function hasHooks(hooks: string): boolean {
+  return hooks !== '0x0000000000000000000000000000000000000000' && hooks !== '0x0'
+}
+
+// Normalize pool data for unified display
+export function normalizePoolForDisplay(pool: Pool | PoolV4): UnifiedPool {
+  if ('address' in pool) {
+    // V3 Pool
+    return {
+      version: 'v3',
+      id: pool.id,
+      identifier: pool.address,
+      asset0Address: pool.token0,
+      asset1Address: pool.token1,
+      asset0Symbol: pool.token0Symbol || 'UNKNOWN',
+      asset1Symbol: pool.token1Symbol || 'UNKNOWN',
+      asset0Name: pool.token0Name || 'Unknown',
+      asset1Name: pool.token1Name || 'Unknown',
+      asset0Decimals: pool.token0Decimals || '18',
+      asset1Decimals: pool.token1Decimals || '18',
+      fee: pool.feeTier,
+      liquidity: pool.liquidity,
+      volume0: pool.volumeToken0,
+      volume1: pool.volumeToken1,
+      tvl0: pool.totalValueLockedToken0,
+      tvl1: pool.totalValueLockedToken1,
+      txCount: pool.txCount,
+      lastSwapAt: pool.lastSwapAt,
+      isActive: pool.isActive,
+    }
+  } else {
+    // V4 Pool
+    return {
+      version: 'v4',
+      id: pool.id,
+      identifier: pool.poolId,
+      asset0Address: pool.currency0,
+      asset1Address: pool.currency1,
+      asset0Symbol: pool.currency0Symbol || 'UNKNOWN',
+      asset1Symbol: pool.currency1Symbol || 'UNKNOWN',
+      asset0Name: pool.currency0Name || 'Unknown',
+      asset1Name: pool.currency1Name || 'Unknown',
+      asset0Decimals: pool.currency0Decimals || '18',
+      asset1Decimals: pool.currency1Decimals || '18',
+      fee: pool.fee,
+      liquidity: pool.liquidity,
+      volume0: pool.volumeCurrency0,
+      volume1: pool.volumeCurrency1,
+      tvl0: pool.totalValueLockedCurrency0,
+      tvl1: pool.totalValueLockedCurrency1,
+      txCount: pool.txCount,
+      lastSwapAt: pool.lastSwapAt,
+      hooks: pool.hooks,
+      isActive: pool.isActive,
+    }
+  }
+}
+
+// Normalize swap data for unified display
+export function normalizeSwapForDisplay(swap: Swap | SwapV4): UnifiedSwap {
+  if ('recipient' in swap) {
+    // V3 Swap
+    return {
+      version: 'v3',
+      id: swap.id,
+      chainId: swap.chainId,
+      transactionHash: swap.transactionHash,
+      timestamp: swap.timestamp,
+      blockNumber: swap.blockNumber,
+      poolIdentifier: swap.pool?.address || 'Unknown',
+      sender: swap.sender,
+      recipient: swap.recipient,
+      amount0: swap.amount0,
+      amount1: swap.amount1,
+    }
+  } else {
+    // V4 Swap
+    return {
+      version: 'v4',
+      id: swap.id,
+      chainId: swap.chainId,
+      transactionHash: swap.transactionHash,
+      timestamp: swap.timestamp,
+      blockNumber: swap.blockNumber,
+      poolIdentifier: swap.poolId,
+      sender: swap.sender,
+      amount0: swap.amount0,
+      amount1: swap.amount1,
+      swapFee: swap.swapFee,
+    }
+  }
+}
+
+// Get pool explorer URL based on version
+export function getPoolExplorerUrl(identifier: string, version: PoolVersion, chainId: string = "8453"): string {
+  const baseUrl = getBlockExplorerUrl(chainId)
+
+  if (version === 'v3') {
+    // V3 pools have their own contract address
+    return `${baseUrl}/address/${identifier}`
+  } else {
+    // V4 pools are managed by the singleton PoolManager
+    return `${baseUrl}/address/${UNISWAP_V4_POOL_MANAGER}`
+  }
+}
+
+// Shorten poolId (32 bytes) for display
+export function shortenPoolId(poolId: string, chars = 6): string {
+  if (!poolId || typeof poolId !== 'string') return '0x...'
+  if (poolId.length < 66) return poolId // Full 32 bytes = 0x + 64 hex chars
+
+  return `${poolId.substring(0, chars + 2)}...${poolId.substring(66 - chars)}`
+}
