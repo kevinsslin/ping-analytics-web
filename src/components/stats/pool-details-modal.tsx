@@ -7,6 +7,7 @@ import { formatTokenAmount, formatNumber, shortenAddress, shortenPoolId, formatF
 import { BarChart3, TrendingUp, Droplets, X, ExternalLink } from 'lucide-react'
 import { useEffect } from 'react'
 import { usePoolActivity } from '@/hooks/usePoolActivity'
+import { usePoolActivityV4 } from '@/hooks/usePoolActivityV4'
 import { UnifiedPool } from '@/types'
 
 interface PoolDetailsModalProps {
@@ -16,12 +17,17 @@ interface PoolDetailsModalProps {
 
 export function PoolDetailsModal({ pool, onClose }: PoolDetailsModalProps) {
   // For V3 pools, use address; for V4 pools, use poolId
-  // usePoolActivity currently only supports V3 (takes address), so we need to handle this
-  const poolIdentifier = pool?.version === 'v3' ? pool.identifier : null
+  const v3Identifier = pool?.version === 'v3' ? pool.identifier : null
+  const v4Identifier = pool?.version === 'v4' ? pool.identifier : null
 
   // Fetch pool activity data (must be called before any early returns)
-  // Only works for V3 pools currently
-  const { activities, loading, error } = usePoolActivity(poolIdentifier, 30, null)
+  const { activities: v3Activities, loading: v3Loading, error: v3Error } = usePoolActivity(v3Identifier, 30, null)
+  const { activities: v4Activities, loading: v4Loading, error: v4Error } = usePoolActivityV4(v4Identifier, 30, null)
+
+  // Use appropriate data based on pool version
+  const activities = pool?.version === 'v3' ? v3Activities : v4Activities
+  const loading = pool?.version === 'v3' ? v3Loading : v4Loading
+  const error = pool?.version === 'v3' ? v3Error : v4Error
 
   // Close on Escape key
   useEffect(() => {
@@ -139,19 +145,8 @@ export function PoolDetailsModal({ pool, onClose }: PoolDetailsModalProps) {
             </CardContent>
           </Card>
 
-          {/* V4 Notice */}
-          {pool.version === 'v4' && (
-            <Card className="mb-4 border-amber-500/20 bg-amber-500/5">
-              <CardContent className="p-4">
-                <p className="text-sm text-amber-600 dark:text-amber-400">
-                  Note: Daily activity charts are currently only available for V3 pools. V4 pool support coming soon.
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Daily Activity Charts (V3 only) */}
-          {pool.version === 'v3' && (
+          {/* Daily Activity Charts (Both V3 and V4) */}
+          {(pool.version === 'v3' || pool.version === 'v4') && (
             <>
               {loading && <LoadingCard />}
 
@@ -239,20 +234,28 @@ export function PoolDetailsModal({ pool, onClose }: PoolDetailsModalProps) {
                                 {activities
                                   .filter(activity => {
                                     if (!activity || !activity.id || !activity.date) return false
-                                    if (!activity.dailyVolumeToken0 || !activity.dailyVolumeToken1) return false
-                                    const vol0 = typeof activity.dailyVolumeToken0 === 'string' ? parseFloat(activity.dailyVolumeToken0) : activity.dailyVolumeToken0
-                                    const vol1 = typeof activity.dailyVolumeToken1 === 'string' ? parseFloat(activity.dailyVolumeToken1) : activity.dailyVolumeToken1
+                                    // Handle both V3 and V4 field names
+                                    const vol0Field = 'dailyVolumeToken0' in activity ? activity.dailyVolumeToken0 : ('dailyVolumeCurrency0' in activity ? (activity as any).dailyVolumeCurrency0 : null)
+                                    const vol1Field = 'dailyVolumeToken1' in activity ? activity.dailyVolumeToken1 : ('dailyVolumeCurrency1' in activity ? (activity as any).dailyVolumeCurrency1 : null)
+                                    if (!vol0Field || !vol1Field) return false
+                                    const vol0 = typeof vol0Field === 'string' ? parseFloat(vol0Field) : vol0Field
+                                    const vol1 = typeof vol1Field === 'string' ? parseFloat(vol1Field) : vol1Field
                                     if (isNaN(vol0) || !isFinite(vol0)) return false
                                     if (isNaN(vol1) || !isFinite(vol1)) return false
                                     return true
                                   })
-                                  .map((activity) => (
-                                  <tr key={activity.id} className="border-b hover:bg-muted/50">
-                                    <td className="p-2">{activity.date}</td>
-                                    <td className="p-2 text-right font-mono">{formatTokenAmount(activity.dailyVolumeToken0, 2)}</td>
-                                    <td className="p-2 text-right font-mono">{formatTokenAmount(activity.dailyVolumeToken1, 2)}</td>
-                                  </tr>
-                                ))}
+                                  .map((activity) => {
+                                    // Get volume fields based on activity type
+                                    const vol0 = 'dailyVolumeToken0' in activity ? activity.dailyVolumeToken0 : (activity as any).dailyVolumeCurrency0
+                                    const vol1 = 'dailyVolumeToken1' in activity ? activity.dailyVolumeToken1 : (activity as any).dailyVolumeCurrency1
+                                    return (
+                                      <tr key={activity.id} className="border-b hover:bg-muted/50">
+                                        <td className="p-2">{activity.date}</td>
+                                        <td className="p-2 text-right font-mono">{formatTokenAmount(vol0, 2)}</td>
+                                        <td className="p-2 text-right font-mono">{formatTokenAmount(vol1, 2)}</td>
+                                      </tr>
+                                    )
+                                  })}
                               </tbody>
                             </table>
                           </div>

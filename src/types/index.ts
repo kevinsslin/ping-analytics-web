@@ -187,6 +187,21 @@ export interface DailyPoolActivity {
   sqrtPriceX96End: string
 }
 
+export interface DailyPoolActivityV4 {
+  id: string // chainId_poolId_date
+  chainId: string
+  poolId: string // PoolId hash
+  date: string // YYYY-MM-DD format
+  timestamp: string // Start of day timestamp
+  dailySwaps: string
+  dailyVolumeCurrency0: string
+  dailyVolumeCurrency1: string
+  liquidityStart: string // Start of day
+  liquidityEnd: string // End of day
+  sqrtPriceX96Start: string
+  sqrtPriceX96End: string
+}
+
 // ============ Constants ============
 
 export const CHAIN_ID = "8453" // Base
@@ -292,6 +307,10 @@ export interface DailyTokenActivityQueryResponse {
 
 export interface DailyPoolActivityQueryResponse {
   DailyPoolActivity: DailyPoolActivity[]
+}
+
+export interface DailyPoolActivityV4QueryResponse {
+  DailyPoolActivityV4: DailyPoolActivityV4[]
 }
 
 export interface PoolV4QueryResponse {

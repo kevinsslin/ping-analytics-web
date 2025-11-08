@@ -404,6 +404,31 @@ export const DAILY_POOL_ACTIVITY_QUERY = gql`
   }
 `
 
+export const DAILY_POOL_ACTIVITY_V4_QUERY = gql`
+  query GetDailyPoolActivityV4($limit: Int!, $poolId: String!) {
+    DailyPoolActivityV4(
+      where: {
+        poolId: { _eq: $poolId }
+      }
+      order_by: [{ timestamp: desc }]
+      limit: $limit
+    ) {
+      id
+      chainId
+      poolId
+      date
+      timestamp
+      dailySwaps
+      dailyVolumeCurrency0
+      dailyVolumeCurrency1
+      liquidityStart
+      liquidityEnd
+      sqrtPriceX96Start
+      sqrtPriceX96End
+    }
+  }
+`
+
 // ============ V4 Pool Queries ============
 
 export const POOLV4_QUERY = gql`
