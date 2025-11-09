@@ -7,7 +7,6 @@ import { formatTokenAmount, formatNumber, shortenAddress, shortenPoolId, formatF
 import { BarChart3, TrendingUp, Droplets, X, ExternalLink } from 'lucide-react'
 import { useEffect } from 'react'
 import { usePoolActivity } from '@/hooks/usePoolActivity'
-import { usePoolActivityV4 } from '@/hooks/usePoolActivityV4'
 import { UnifiedPool } from '@/types'
 
 interface PoolDetailsModalProps {
@@ -16,18 +15,11 @@ interface PoolDetailsModalProps {
 }
 
 export function PoolDetailsModal({ pool, onClose }: PoolDetailsModalProps) {
-  // For V3 pools, use address; for V4 pools, use poolId
-  const v3Identifier = pool?.version === 'v3' ? pool.identifier : null
-  const v4Identifier = pool?.version === 'v4' ? pool.identifier : null
+  // Use pool identifier (address for V3, poolId for V4)
+  const poolIdentifier = pool?.identifier || null
 
-  // Fetch pool activity data (must be called before any early returns)
-  const { activities: v3Activities, loading: v3Loading, error: v3Error } = usePoolActivity(v3Identifier, 30, null)
-  const { activities: v4Activities, loading: v4Loading, error: v4Error } = usePoolActivityV4(v4Identifier, 30, null)
-
-  // Use appropriate data based on pool version
-  const activities = pool?.version === 'v3' ? v3Activities : v4Activities
-  const loading = pool?.version === 'v3' ? v3Loading : v4Loading
-  const error = pool?.version === 'v3' ? v3Error : v4Error
+  // Fetch pool activity data using unified query (works for both V3 and V4)
+  const { activities, loading, error } = usePoolActivity(poolIdentifier, 30, null)
 
   // Close on Escape key
   useEffect(() => {
@@ -234,28 +226,20 @@ export function PoolDetailsModal({ pool, onClose }: PoolDetailsModalProps) {
                                 {activities
                                   .filter(activity => {
                                     if (!activity || !activity.id || !activity.date) return false
-                                    // Handle both V3 and V4 field names
-                                    const vol0Field = 'dailyVolumeToken0' in activity ? activity.dailyVolumeToken0 : ('dailyVolumeCurrency0' in activity ? (activity as any).dailyVolumeCurrency0 : null)
-                                    const vol1Field = 'dailyVolumeToken1' in activity ? activity.dailyVolumeToken1 : ('dailyVolumeCurrency1' in activity ? (activity as any).dailyVolumeCurrency1 : null)
-                                    if (!vol0Field || !vol1Field) return false
-                                    const vol0 = typeof vol0Field === 'string' ? parseFloat(vol0Field) : vol0Field
-                                    const vol1 = typeof vol1Field === 'string' ? parseFloat(vol1Field) : vol1Field
+                                    if (!activity.dailyVolume0 || !activity.dailyVolume1) return false
+                                    const vol0 = typeof activity.dailyVolume0 === 'string' ? parseFloat(activity.dailyVolume0) : activity.dailyVolume0
+                                    const vol1 = typeof activity.dailyVolume1 === 'string' ? parseFloat(activity.dailyVolume1) : activity.dailyVolume1
                                     if (isNaN(vol0) || !isFinite(vol0)) return false
                                     if (isNaN(vol1) || !isFinite(vol1)) return false
                                     return true
                                   })
-                                  .map((activity) => {
-                                    // Get volume fields based on activity type
-                                    const vol0 = 'dailyVolumeToken0' in activity ? activity.dailyVolumeToken0 : (activity as any).dailyVolumeCurrency0
-                                    const vol1 = 'dailyVolumeToken1' in activity ? activity.dailyVolumeToken1 : (activity as any).dailyVolumeCurrency1
-                                    return (
-                                      <tr key={activity.id} className="border-b hover:bg-muted/50">
-                                        <td className="p-2">{activity.date}</td>
-                                        <td className="p-2 text-right font-mono">{formatTokenAmount(vol0, 2)}</td>
-                                        <td className="p-2 text-right font-mono">{formatTokenAmount(vol1, 2)}</td>
-                                      </tr>
-                                    )
-                                  })}
+                                  .map((activity) => (
+                                  <tr key={activity.id} className="border-b hover:bg-muted/50">
+                                    <td className="p-2">{activity.date}</td>
+                                    <td className="p-2 text-right font-mono">{formatTokenAmount(activity.dailyVolume0, 2)}</td>
+                                    <td className="p-2 text-right font-mono">{formatTokenAmount(activity.dailyVolume1, 2)}</td>
+                                  </tr>
+                                ))}
                               </tbody>
                             </table>
                           </div>

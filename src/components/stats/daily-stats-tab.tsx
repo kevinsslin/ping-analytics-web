@@ -113,8 +113,8 @@ export function DailyStatsTab() {
               <tbody>
                 {poolActivities.map((activity, index) => {
                   // Note: Envio already converts to decimal format
-                  const volumeToken0 = parseFloat(activity.dailyVolumeToken0)
-                  const volumeToken1 = parseFloat(activity.dailyVolumeToken1)
+                  const volumeToken0 = parseFloat(activity.dailyVolume0)
+                  const volumeToken1 = parseFloat(activity.dailyVolume1)
                   const liquidityStart = parseFloat(activity.liquidityStart)
                   const liquidityEnd = parseFloat(activity.liquidityEnd)
                   const liquidityChange = ((liquidityEnd - liquidityStart) / liquidityStart) * 100

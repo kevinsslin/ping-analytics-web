@@ -380,51 +380,29 @@ export const DAILY_TOKEN_ACTIVITY_QUERY = gql`
 `
 
 export const DAILY_POOL_ACTIVITY_QUERY = gql`
-  query GetDailyPoolActivity($limit: Int!, $poolAddress: String!) {
+  query GetDailyPoolActivity($limit: Int!, $poolIdentifier: String!) {
     DailyPoolActivity(
       where: {
-        pool: { _eq: $poolAddress }
+        poolIdentifier: { _eq: $poolIdentifier }
       }
       order_by: [{ timestamp: desc }]
       limit: $limit
     ) {
       id
       chainId
-      pool
+      poolIdentifier
+      poolVersion
       date
       timestamp
       dailySwaps
-      dailyVolumeToken0
-      dailyVolumeToken1
+      dailyVolume0
+      dailyVolume1
       liquidityStart
       liquidityEnd
       sqrtPriceX96Start
       sqrtPriceX96End
-    }
-  }
-`
-
-export const DAILY_POOL_ACTIVITY_V4_QUERY = gql`
-  query GetDailyPoolActivityV4($limit: Int!, $poolId: String!) {
-    DailyPoolActivityV4(
-      where: {
-        poolId: { _eq: $poolId }
-      }
-      order_by: [{ timestamp: desc }]
-      limit: $limit
-    ) {
-      id
-      chainId
-      poolId
-      date
-      timestamp
-      dailySwaps
-      dailyVolumeCurrency0
-      dailyVolumeCurrency1
-      liquidityStart
-      liquidityEnd
-      sqrtPriceX96Start
-      sqrtPriceX96End
+      dailyLiquidityAdds
+      dailyLiquidityRemoves
     }
   }
 `

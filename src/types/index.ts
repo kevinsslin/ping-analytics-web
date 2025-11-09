@@ -173,33 +173,21 @@ export interface DailyTokenActivity {
 }
 
 export interface DailyPoolActivity {
-  id: string // chainId_poolAddress_date
+  id: string // chainId_poolIdentifier_date
   chainId: string
-  pool: string // Pool address
+  poolIdentifier: string // Pool address (V3) or PoolId hash (V4)
+  poolVersion: string // "V3" or "V4"
   date: string // YYYY-MM-DD format
   timestamp: string // Start of day timestamp
   dailySwaps: string
-  dailyVolumeToken0: string
-  dailyVolumeToken1: string
+  dailyVolume0: string // Unified field for both V3 and V4
+  dailyVolume1: string // Unified field for both V3 and V4
   liquidityStart: string // Start of day
   liquidityEnd: string // End of day
   sqrtPriceX96Start: string
   sqrtPriceX96End: string
-}
-
-export interface DailyPoolActivityV4 {
-  id: string // chainId_poolId_date
-  chainId: string
-  poolId: string // PoolId hash
-  date: string // YYYY-MM-DD format
-  timestamp: string // Start of day timestamp
-  dailySwaps: string
-  dailyVolumeCurrency0: string
-  dailyVolumeCurrency1: string
-  liquidityStart: string // Start of day
-  liquidityEnd: string // End of day
-  sqrtPriceX96Start: string
-  sqrtPriceX96End: string
+  dailyLiquidityAdds?: string // Only for V4, null for V3
+  dailyLiquidityRemoves?: string // Only for V4, null for V3
 }
 
 // ============ Constants ============
@@ -307,10 +295,6 @@ export interface DailyTokenActivityQueryResponse {
 
 export interface DailyPoolActivityQueryResponse {
   DailyPoolActivity: DailyPoolActivity[]
-}
-
-export interface DailyPoolActivityV4QueryResponse {
-  DailyPoolActivityV4: DailyPoolActivityV4[]
 }
 
 export interface PoolV4QueryResponse {

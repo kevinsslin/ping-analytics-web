@@ -6,7 +6,7 @@ import { DAILY_POOL_ACTIVITY_QUERY } from '@/lib/queries'
 import { DailyPoolActivity, DailyPoolActivityQueryResponse } from '@/types'
 
 export function usePoolActivity(
-  poolAddress: string | null,
+  poolIdentifier: string | null,
   limit = 30, // Default to 30 days of activity
   pollInterval: number | null = null // null = no polling
 ) {
@@ -15,8 +15,8 @@ export function usePoolActivity(
   const [error, setError] = useState<string | null>(null)
 
   const fetchActivities = useCallback(async () => {
-    // Don't fetch if no pool address provided
-    if (!poolAddress) {
+    // Don't fetch if no pool identifier provided
+    if (!poolIdentifier) {
       setActivities([])
       setLoading(false)
       return
@@ -24,11 +24,9 @@ export function usePoolActivity(
 
     try {
       setLoading(true)
-      // Normalize pool address to lowercase for consistent database matching
-      const normalizedAddress = poolAddress.toLowerCase()
       const data = await fetchGraphQL<DailyPoolActivityQueryResponse>(
         DAILY_POOL_ACTIVITY_QUERY,
-        { limit, poolAddress: normalizedAddress }
+        { limit, poolIdentifier }
       )
 
       if (data.DailyPoolActivity) {
@@ -41,13 +39,13 @@ export function usePoolActivity(
       setError(err.message || 'Failed to fetch pool activity')
       setLoading(false)
     }
-  }, [poolAddress, limit])
+  }, [poolIdentifier, limit])
 
   useEffect(() => {
     fetchActivities()
 
-    // Only set up polling if pollInterval is provided and poolAddress exists
-    if (pollInterval !== null && poolAddress) {
+    // Only set up polling if pollInterval is provided and poolIdentifier exists
+    if (pollInterval !== null && poolIdentifier) {
       const interval = setInterval(() => {
         if (!document.hidden) {
           fetchActivities()
@@ -67,7 +65,7 @@ export function usePoolActivity(
         document.removeEventListener('visibilitychange', handleVisibilityChange)
       }
     }
-  }, [fetchActivities, pollInterval, poolAddress])
+  }, [fetchActivities, pollInterval, poolIdentifier])
 
   return { activities, loading, error, refetch: fetchActivities }
 }
